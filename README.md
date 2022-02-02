@@ -26,6 +26,7 @@ Then locate the centric-ibridge folder and set it up:
 ```sh
 cd ./centric-ibridge
 python -m venv venv
+source ./venv/bin/activate
 pip install --upgrade pip
 pip install -r ./requirements.txt
 ```
