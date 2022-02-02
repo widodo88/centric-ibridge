@@ -14,51 +14,71 @@ from threading import RLock
 
 
 class StartableListener(object):
+    """A Listener support class to provide bridge of state changing behaviour on Startable Object"""
 
-    def __init__(self, starting=None, started=None, failure=None, stopping=None, stopped=None, configuring=None,
-                 configured=None):
-        self._starting = starting
-        self._started = started
-        self._failure = failure
-        self._stopping = stopping
-        self._stopped = stopped
-        self._configuring = configuring
-        self._configured = configured
+    def __init__(self, starting_func=None, started_func=None, failure_func=None, stopping_func=None, stopped_func=None, configuring_func=None,
+                 configured_func=None):
+        """
+        Initialize the listener
+        @param starting_func: callback function when fired upon observable object starting
+        @param started_func: callback function when fired upon observable object started
+        @param failure_func: callback function when fired upon observable object failure
+        @param stopping_func: callback function when fired upon observable object stopping
+        @param stopped_func: callback function when fired upon observable object stopped
+        @param configuring_func: callback function when fired upon observable object configuring
+        @param configured_func: callback function when fired upon observable object configured
+        """
+        self._starting = starting_func
+        self._started = started_func
+        self._failure = failure_func
+        self._stopping = stopping_func
+        self._stopped = stopped_func
+        self._configuring = configuring_func
+        self._configured = configured_func
 
     def on_starting(self, obj):
+        """Facilitating to notify observer upon starting event"""
         if self._starting:
             self._starting(obj)
 
     def on_started(self, obj):
+        """Facilitating to notify observer upon started event"""
         if self._started:
             self._started(obj)
 
     def on_failure(self, obj, exc):
+        """Facilitating to notify observer upon failure event"""
         if self._failure:
             self._failure(obj, exc)
 
     def on_stopping(self, obj):
+        """Facilitating to notify observer upon stopping event"""
         if self._stopping:
             self._stopping(obj)
 
     def on_stopped(self, obj):
+        """Facilitating to notify observer upon stopped event"""
         if self._stopping:
             self._stopping(obj)
 
     def on_configuring(self, obj, config):
+        """Facilitating to notify observer upon configuring event"""
         if self._configuring:
             self._configuring(obj, config)
 
     def on_configured(self, obj, config):
+        """Facilitating to notify observer upon configured event"""
         if self._configured:
             self._configured(obj, config)
 
 
 class Startable(object):
+    """An Abstract Class for generic startable component"""
 
     FAILED, STOPPED, STARTING, STARTED, STOPPING, CONFIGURING, CONFIGURED, UNCONFIGURED = -1, 0, 1, 2, 3, 4, 5, 6
 
     def __init__(self, config=None):
+        """Initialize the component, configuration object is optional which could be added by set_configuration later"""
         self._state = Startable.STOPPED
         self._configured = Startable.UNCONFIGURED
         self._enabled = True
@@ -67,44 +87,78 @@ class Startable(object):
         self._configuration = config
 
     def do_start(self):
+        """An abstract method to perform component start routines"""
         pass
 
     def do_stop(self):
+        """An abstract method to perform component srtop routines"""
         pass
 
     def do_configure(self):
+        """An abstract method to perform component configuring routines"""
         pass
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
+        """
+        Check if the component is enable
+        @return: boolean value
+        """
         return self._enabled
 
-    def is_started(self):
+    def is_started(self) -> bool:
+        """
+        Check if the component is started
+        @return: boolean value
+        """
         return self._state == Startable.STARTED
 
-    def is_starting(self):
+    def is_starting(self) -> bool:
+        """
+        Check if the component is starting
+        @return: boolean value
+        """
         return self._state == Startable.STARTING
 
-    def is_stopped(self):
+    def is_stopped(self) -> bool:
+        """
+        Check if the component is stopped
+        @return: boolean value
+        """
         return self._state == Startable.STOPPED
 
-    def is_stopping(self):
+    def is_stopping(self) -> bool:
+        """
+        Check if the component is stopping
+        @return: boolean value
+        """
         return self._state == Startable.STOPPING
 
-    def is_running(self):
+    def is_running(self) -> bool:
+        """
+        Ceck if the component is running
+        @return: boolean value
+        """
         return self.is_started() or self.is_starting()
 
-    def get_configuration(self):
+    def get_configuration(self) -> dict:
+        """
+        Get the configuration object commonly rfequired upon configuring component
+        @return:
+        """
         return self._configuration
 
     def set_configuration(self, config):
+        """Set the configuration dictionary commonly required upon configuring this component"""
         self._configuration = config
 
     def add_listener(self, listener):
+        """Add listener to this observable component"""
         if not isinstance(listener, StartableListener):
             return
         self._listeners.append(listener)
 
     def remove_listener(self, listener):
+        """Remove listener from this observable component"""
         if not isinstance(listener, StartableListener):
             return
         if listener in self._listeners:
@@ -112,6 +166,7 @@ class Startable(object):
             self._listeners.pop(obj_pos)
 
     def configure(self):
+        """Perform configuring this component"""
         self._lock.acquire(blocking=True)
         try:
             if (self._configured == Startable.CONFIGURED) or \
@@ -127,6 +182,7 @@ class Startable(object):
             self._lock.release()
 
     def start(self):
+        """Perform Starting this component"""
         if self._configured == Startable.UNCONFIGURED:
             self.configure()
         self._lock.acquire(blocking=True)
@@ -144,6 +200,7 @@ class Startable(object):
             self._lock.release()
 
     def stop(self):
+        """Perform Stopping this component"""
         self._lock.acquire(blocking=True)
         try:
             if self._state in [Startable.STOPPED, Startable.STOPPING]:
@@ -158,7 +215,12 @@ class Startable(object):
         finally:
             self._lock.release()
 
-    def get_listeners(self):
+    def get_listeners(self) -> list:
+        """
+        get subscribed listener
+
+        @return: list of subscribed listeners
+        """
         return self._listeners
 
     def _set_configured(self):

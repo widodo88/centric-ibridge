@@ -19,7 +19,7 @@ class BridgeServer(LifeCycleManager):
 
     def do_configure(self):
         shutdown_hook = ShutdownHookMonitor.get_default_instance()
-        shutdown_hook.add_listener(StartableListener(stopped=self.on_terminate_signal))
+        shutdown_hook.add_listener(StartableListener(stopped_func=self.on_terminate_signal))
         self.add_object(shutdown_hook)
         super(BridgeServer, self).do_configure()
 
