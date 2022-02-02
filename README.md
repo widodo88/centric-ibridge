@@ -17,7 +17,25 @@ This repository will also provides as read-only, which means you should fork to 
 
 ## Installation
 
+Clone this repository to local
 ```sh
 git clone https://github.com/busanagroup/centric-ibridge.git
 ```
+
+Then locate the centric-ibridge folder and set it up:
+```sh
+cd ./centric-ibridge
+python -m venv venv
+pip install --upgrade pip
+pip install -r ./requirements.txt
+```
+
+You can start the daemon with this command
+```sh
+cd ./centric-ibridge
+source ./venv/bin/activate
+python ./ibridge.py start
+```
+
+
 
