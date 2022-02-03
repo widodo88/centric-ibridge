@@ -76,6 +76,9 @@ class TransportHandler(Startable):
     def get_transport_index(self):
         return self._transport_index
 
+    def set_transport_index(self, index):
+        self._transport_index = index
+
     def get_transport_address(self):
         return self._target_address
 

@@ -12,29 +12,37 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import os
 import logging
 from core.startable import LifeCycleManager
 from core.transhandler import TransportMessageNotify
 from core.shutdn import ShutdownHookMonitor
 from core.transport.xsocktransport import UnixSocketTransport
 from core.transport.localtransport import LocalhostTransport
+from core.transfactory import TransportPreparer
 from utils import oshelper
 
 
 class BridgeServer(LifeCycleManager):
 
+    def configure_transport(self, listener):
+        config = self.get_configuration()
+        TransportPreparer.prepare_transports(config, listener, self)
+
     def do_configure(self):
         cfg = self.get_configuration()
-        shutdown_listener = TransportMessageNotify(stopped_func=self.on_terminate_signal)
+        default_listener = TransportMessageNotify(message_func=self.on_message_recv,
+                                                  stopped_func=self.on_terminate_signal)
         shutdown_hook = ShutdownHookMonitor.get_default_instance()
         shutdown_hook.set_configuration(cfg)
-        shutdown_hook.add_listener(shutdown_listener)
+        shutdown_hook.add_listener(default_listener)
         self.add_object(shutdown_hook)
         local_transport = UnixSocketTransport(cfg) if not oshelper.is_windows() else LocalhostTransport(cfg)
-        local_transport.add_listener(shutdown_listener)
+        local_transport.add_listener(default_listener)
         self.add_object(local_transport)
         super(BridgeServer, self).do_configure()
+
+    def on_message_recv(self, obj, message):
+        logging.info(message)
 
     def on_terminate_signal(self, obj):
         self.stop()
