@@ -48,7 +48,6 @@ class TransportHandler(Startable):
         pass
 
     def do_configure(self):
-        super(TransportHandler).do_configure()
         self._target_address = self._get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
         self._target_port = self._get_config_value(consts.MQ_TRANSPORT_PORT, None)
         self._target_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
@@ -56,7 +55,6 @@ class TransportHandler(Startable):
         self._target_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
 
     def do_start(self):
-        super(TransportHandler, self).do_start()
         if self.is_enabled():
             self._transport_thread.start()
 
