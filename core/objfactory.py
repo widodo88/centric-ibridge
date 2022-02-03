@@ -38,7 +38,7 @@ class AbstractFactory(object):
     def import_klass(class_name):
         components, import_module = oshelper.extract_class_name(class_name)
         mod = __import__(import_module)
-        for comp in components[1:]
+        for comp in components[1:]:
             mod = getattr(mod, comp)
         return mod
 
