@@ -44,7 +44,8 @@ DEFAULT_SHUTDOWN_PORT = 9999
 MQ_TRANSPORT_STOMP = "stomp"
 MQ_TRANSPORT_MQTT = "mqtt"
 MQ_TRANSPORT_AMQP = "amqp"
-MQ_TRANSPORT_unix = "unix"
+MQ_TRANSPORT_UNIX = "unix"
+MQ_TRANSPORT_LOCAL = "local"
 
 MQ_TRANSPORT_COUNT = "mq.transport.count"
 MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
@@ -57,3 +58,6 @@ MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
 UNIX_SOCKET_FILE = "/tmp/ibridge.sock"
 LOCAL_TRANSPORT_ADDR = "127.0.0.1"
 LOCAL_TRANSPORT_PORT = 8888
+
+TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTransport",
+                  MQ_TRANSPORT_LOCAL: "core.transport.localtransport.LocalhostTransport"}

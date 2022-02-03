@@ -16,9 +16,15 @@ import os
 import platform
 
 
+def extract_class_name(class_name):
+    components = class_name.split(".")
+    return components, ".".join(components[:-1])
+
+
 def is_windows():
     return os.name == "nt"
 
 
 def is_linux():
     return (os.name == "posix") and (platform.system() == "Linux")
+
