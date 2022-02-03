@@ -9,6 +9,8 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
+# This module is part of Centric PLM Integration Bridge and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 from threading import Thread, RLock
 from socket import AF_INET, socket, SOCK_STREAM
