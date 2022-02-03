@@ -40,3 +40,11 @@ DEFAULT_LOGF_LEVEL = log_level[LOG_LEVEL_INFO]
 
 DEFAULT_SHUTDOWN_ADDR = "127.0.0.1"
 DEFAULT_SHUTDOWN_PORT = 9999
+
+MQ_TRANSPORT_COUNT = "mq.transport.count"
+MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
+MQ_TRANSPORT_ADDR = "mq.transport.{0}.address"
+MQ_TRANSPORT_PORT = "mq.transport.{0}.port"
+MQ_TRANSPORT_USER = "mq.transport.{0}.user"
+MQ_TRANSPORT_PASS = "mq.transport.{0}.passwd"
+MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
