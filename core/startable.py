@@ -61,8 +61,8 @@ class StartableListener(object):
 
     def on_stopped(self, obj):
         """Facilitating to notify observer upon stopped event"""
-        if self._stopping:
-            self._stopping(obj)
+        if self._stopped:
+            self._stopped(obj)
 
     def on_configuring(self, obj, config):
         """Facilitating to notify observer upon configuring event"""
@@ -307,21 +307,21 @@ class StartableManager(Startable):
                 item.set_configuration(self.get_configuration())
                 item.configure()
             except Exception as exc:
-                pass
+                logging.error(exc)
 
     def do_start(self):
         for item in self._startable_objects:
             try:
                 item.start()
             except Exception as exc:
-                pass
+                logging.error(exc)
 
     def do_stop(self):
         for item in self._startable_objects:
             try:
                 item.stop()
             except Exception as exc:
-                pass
+                logging.error(exc)
 
 
 class LifeCycleManager(StartableManager):
