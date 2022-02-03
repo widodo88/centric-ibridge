@@ -14,6 +14,10 @@
 
 import logging
 
+DEFAULT_SCRIPT_PATH = "./"
+DEFAULT_COMMAND_FILE = "commands.properties"
+DEFAULT_EVENT_FILE = "events.properties"
+
 SHUTDOWN_ADDR = "shutdown.addr"
 SHUTDOWN_PORT = "shutdown.port"
 

@@ -14,35 +14,41 @@
 
 import logging
 from core.startable import LifeCycleManager
-from core.transhandler import TransportMessageNotify
+from core.transhandler import TransportMessageNotifier
 from core.shutdn import ShutdownHookMonitor
 from core.transport.xsocktransport import UnixSocketTransport
 from core.transport.localtransport import LocalhostTransport
 from core.transfactory import TransportPreparer
+from core.msghandler import QueuePoolHandler
 from utils import oshelper
 
 
 class BridgeServer(LifeCycleManager):
 
-    def configure_transport(self, listener):
+    def configure_transport(self):
         config = self.get_configuration()
-        TransportPreparer.prepare_transports(config, listener, self)
+        transport_listener = TransportMessageNotifier(stopped_func=self.on_terminate_signal)
+        TransportPreparer.prepare_transports(config, transport_listener, self)
+        return transport_listener
 
     def do_configure(self):
         cfg = self.get_configuration()
-        default_listener = TransportMessageNotify(message_func=self.on_message_recv,
-                                                  stopped_func=self.on_terminate_signal)
+        transport_listener = self.configure_transport()
+
+        local_transport = UnixSocketTransport(cfg) if not oshelper.is_windows() else LocalhostTransport(cfg)
+        local_transport.add_listener(transport_listener)
+        self.add_object(local_transport)
+
+        message_pool = QueuePoolHandler()
+        message_pool.register_listener(transport_listener)
+        self.add_object(message_pool)
+
         shutdown_hook = ShutdownHookMonitor.get_default_instance()
         shutdown_hook.set_configuration(cfg)
-        shutdown_hook.add_listener(default_listener)
+        shutdown_hook.add_listener(transport_listener)
         self.add_object(shutdown_hook)
-        local_transport = UnixSocketTransport(cfg) if not oshelper.is_windows() else LocalhostTransport(cfg)
-        local_transport.add_listener(default_listener)
-        self.add_object(local_transport)
-        super(BridgeServer, self).do_configure()
 
-    def on_message_recv(self, obj, message):
-        logging.info(message)
+        super(BridgeServer, self).do_configure()
 
     def on_terminate_signal(self, obj):
         self.stop()
