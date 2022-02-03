@@ -58,8 +58,6 @@ class ShutdownHookMonitor(Startable):
         self.shutdown_thread = Thread(target=self.listen, daemon=True, name="StopMonitor")
 
     def do_start(self):
-        self.socket.bind((self.shutdown_addr, self.shutdown_port))
-        self.socket.listen(1)
         self.shutdown_thread.start()
 
     def do_stop(self):
@@ -68,6 +66,8 @@ class ShutdownHookMonitor(Startable):
     def listen(self):
         client = None
         should_terminate = False
+        self.socket.bind((self.shutdown_addr, self.shutdown_port))
+        self.socket.listen(1)
         while self.is_running():
             try:
                 if not should_terminate:

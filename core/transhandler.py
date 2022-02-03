@@ -21,8 +21,10 @@ from core.startable import Startable, StartableListener
 
 class TransportMessageNotify(StartableListener):
 
-    def __init__(self, message_func=None):
-        super(TransportMessageNotify, self).__init__()
+    def __init__(self, message_func=None, starting_func=None, started_func=None, failure_func=None,
+                 stopping_func=None, stopped_func=None, configuring_func=None, configured_func=None):
+        super(TransportMessageNotify, self).__init__(starting_func, started_func, failure_func, stopping_func,
+                                                     stopped_func, configuring_func, configured_func)
         self._message = message_func
 
     def on_message_received(self, obj, msg):
