@@ -35,6 +35,7 @@ class TransportHandler(MessageHandler):
         self._target_password = None
         self._target_channel = None
         self._target_clientid = None
+        self._client_heartbeat = None
 
     def do_listen(self):
         pass
