@@ -11,7 +11,7 @@
 #
 
 import logging
-from core.msgobject import get_module_id
+from core import msgobject
 
 
 class BaseCommandProcessor(object):
@@ -22,12 +22,12 @@ class BaseCommandProcessor(object):
         self._parent = None
 
     def _get_module_id(self):
-        return get_module_id(self.MODULE, self.SUBMODULE)
+        return msgobject.get_module_id(self.MODULE, self.SUBMODULE)
 
-    def _is_mq_method(self, func_name, func_code=None, mq_type=MODE_COMMAND):
+    def _is_mq_method(self, func_name, func_code=None, mq_type=msgobject.MODE_COMMAND):
         """Check if function is a published method"""
         func = getattr(self, func_name, None) if func_code is None else func_code
-        return True if (func is not None) and (getattr(func, 'mq_type', MODE_COMMAND) == mq_type) else False
+        return True if (func is not None) and (getattr(func, 'mq_type', msgobject.MODE_COMMAND) == mq_type) else False
 
     def _perform_mq_exec(self, cmd):
         error_type = 1 if cmd.COMMAND in [None, ''] else 0
@@ -41,7 +41,8 @@ class BaseCommandProcessor(object):
     def _perform_mq_notify(self, func, event):
         error_type = 1 if func in [None, ''] else 0
         queue_func = getattr(self, func, None) if error_type == 0 else None
-        if (error_type == 0) and (queue_func is not None) and self._is_mq_method(func, queue_func, MODE_EVENT):
+        if (error_type == 0) and (queue_func is not None) and \
+                self._is_mq_method(func, queue_func, msgobject.MODE_EVENT):
             _args, _kwargs = event.PARAMS
             logging.debug("notifying {0}".format(func))
             return queue_func(*_args, **_kwargs)
@@ -59,4 +60,3 @@ class BaseCommandProcessor(object):
 
 class CommandProcessor(BaseCommandProcessor):
     pass
-

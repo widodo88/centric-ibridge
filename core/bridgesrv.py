@@ -19,7 +19,8 @@ from core.shutdn import ShutdownHookMonitor
 from core.transport.xsocktransport import UnixSocketTransport
 from core.transport.localtransport import LocalhostTransport
 from core.transfactory import TransportPreparer
-from core.msghandler import QueuePoolHandler
+from core.msghandler import QueuePoolHandler, MessageNotifier
+from core. msgexec import MessageExecutionManager
 from utils import oshelper
 
 
@@ -39,8 +40,14 @@ class BridgeServer(LifeCycleManager):
         local_transport.add_listener(transport_listener)
         self.add_object(local_transport)
 
+        message_listener = MessageNotifier()
+        execution_manager = MessageExecutionManager(cfg)
+        execution_manager.register_listener(message_listener)
+        self.add_object(execution_manager)
+
         message_pool = QueuePoolHandler()
         message_pool.register_listener(transport_listener)
+        message_pool.add_listener(message_listener)
         self.add_object(message_pool)
 
         shutdown_hook = ShutdownHookMonitor.get_default_instance()

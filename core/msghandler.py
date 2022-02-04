@@ -51,7 +51,8 @@ class QueuePoolHandler(MessageHandler):
         self._eval_thread = threading.Thread(target=self._eval_message, daemon=True)
 
     def register_listener(self, listener):
-        listener.set_on_message_received(self.on_handle_message)
+        if isinstance(listener, MessageNotifier):
+            listener.set_on_message_received(self.on_handle_message)
 
     def on_handle_message(self, obj, message):
         self._queue.put(message, block=True)
