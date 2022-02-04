@@ -25,22 +25,28 @@ class MqttTransport(TransportHandler):
     def __init__(self):
         self.client = None
         self.client_id = None
+        self.subscribed = False
         super(MqttTransport, self).__init__()
 
     def do_configure(self):
         self.client_id = self._get_config_value(consts.MQ_TRANSPORT_CLIENT_ID, 'ecfbridge01')
         super(MqttTransport, self).do_configure()
 
-    def on_message(self, obj, msg):
+    def on_message(self, client, usrdata, msg):
         if msg:
-            self.handle_message(msg)
+            self.handle_message(msg.payload.decode())
 
     def on_subscribe(self, client, obj, mid, granted_qos):
-        pass
+        self.subscribed = 1
 
-    @staticmethod
-    def on_connect(client, obj, flags, rc):
+    def on_disconnect(self, client, userdata, rc):
+        logging.info("Disconnected to mqtt broker")
+        self.subscribed = 0
+
+    def on_connect(self, client, obj, flags, rc):
         logging.info("Connected to mqtt broker")
+        if not self.subscribed:
+            self.client.subscribe(self.get_transport_channel())
 
     def do_listen(self):
         self.client = mqtt.Client(self.client_id)
@@ -48,6 +54,7 @@ class MqttTransport(TransportHandler):
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_subscribe = self.on_subscribe
+        self.client.on_disconnect = self.on_disconnect
         self.client.connect(self.get_transport_address(), self.get_transport_port())
         self.client.subscribe(self.get_transport_channel())
         self.client.loop_forever()
