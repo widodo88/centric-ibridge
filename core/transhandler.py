@@ -16,23 +16,14 @@ import logging
 import threading
 import time
 from common import consts
-from core.startable import Startable, StartableListener
+from core.msghandler import MessageNotifier, MessageHandler
 
 
-class TransportMessageNotify(StartableListener):
-
-    def __init__(self, message_func=None, starting_func=None, started_func=None, failure_func=None,
-                 stopping_func=None, stopped_func=None, configuring_func=None, configured_func=None):
-        super(TransportMessageNotify, self).__init__(starting_func, started_func, failure_func, stopping_func,
-                                                     stopped_func, configuring_func, configured_func)
-        self._message = message_func
-
-    def on_message_received(self, obj, msg):
-        if self._message:
-            self._message(obj, msg)
+class TransportMessageNotifier(MessageNotifier):
+    pass
 
 
-class TransportHandler(Startable):
+class TransportHandler(MessageHandler):
 
     def __init__(self, config=None, transport_index=0):
         super(TransportHandler, self).__init__(config)
@@ -61,12 +52,6 @@ class TransportHandler(Startable):
         if self.is_enabled():
             self._transport_thread.start()
 
-    def handle_message(self, message):
-        valid_listeners = [listener for listener in self.get_listeners() if
-                           isinstance(listener, TransportMessageNotify)]
-        for listener in valid_listeners:
-            listener.on_message_received(self, message)
-
     def listen(self):
         while self.is_running():
             try:
@@ -78,6 +63,9 @@ class TransportHandler(Startable):
 
     def get_transport_index(self):
         return self._transport_index
+
+    def set_transport_index(self, index):
+        self._transport_index = index
 
     def get_transport_address(self):
         return self._target_address
