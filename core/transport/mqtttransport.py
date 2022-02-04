@@ -12,24 +12,24 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from paho.mqtt import client as mqtt
-from common import consts
-from core.transhandler import TransportHandler
 import logging
+from uuid import uuid4
+
+from paho.mqtt import client as mqtt
+
+from core.transhandler import TransportHandler
 
 
 class MqttTransport(TransportHandler):
-
     client = None
 
     def __init__(self):
         self.client = None
-        self.client_id = None
+        self.client_id = str(uuid4())
         self.subscribed = False
         super(MqttTransport, self).__init__()
 
     def do_configure(self):
-        self.client_id = self._get_config_value(consts.MQ_TRANSPORT_CLIENT_ID, 'ecfbridge01')
         super(MqttTransport, self).do_configure()
 
     def on_message(self, client, usrdata, msg):
