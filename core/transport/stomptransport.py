@@ -19,6 +19,7 @@ from stompest.sync import Stomp
 import logging
 import time
 
+
 class StompTransport(TransportHandler):
 
     def __init__(self):
@@ -30,14 +31,13 @@ class StompTransport(TransportHandler):
         if not self.stomp_config:
             self.stomp_config = StompConfig("tcp://{0}:{1}".format(self.get_transport_address(),
                                                                    self.get_transport_port()),
-                                                                   login = self.get_transport_user(),
-                                                                   passcode = self.get_transport_password(),
-                                                                   version = StompSpec.VERSION_1_2)
-
+                                            login=self.get_transport_user(),
+                                            passcode=self.get_transport_password(),
+                                            version=StompSpec.VERSION_1_2)
 
     def do_listen(self):
         client = Stomp(self.stomp_config)
-        logging.info("Subscribing {} on channel {}".format(self.get_transport_address(),self.get_transport_channel()))
+        logging.info("Subscribing {} on channel {}".format(self.get_transport_address(), self.get_transport_channel()))
         client.connect(versions=[StompSpec.VERSION_1_2], heartBeats=(self.get_client_heartbeat(),
                                                                      self.get_client_heartbeat()))
         client_heartbeat = client.clientHeartBeat / 1000.0
