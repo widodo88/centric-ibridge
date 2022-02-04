@@ -11,7 +11,7 @@
 #
 import logging
 from core.transhandler import TransportHandler
-from amqplib import client_0_8 as amqp
+import amqp
 from common import consts
 
 
@@ -24,17 +24,16 @@ class AmqpTransport(TransportHandler):
         self.auto_delete = False
         # fanout, direct, topic
         self.type = "direct"
-        self._target_clientid = None
+        self._clientid = None
         self._my_exchange = None
 
     def do_configure(self):
         super(AmqpTransport, self).do_configure()
-        self._target_clientid = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._clientid = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
         self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
-        if not self.amqp_config:
-            self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
-            self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
-                                               password=self.get_transport_password())
+        self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
+        self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
+                                           password=self.get_transport_password())
 
     def do_listen(self):
         client = self.amqp_config.channel(self.get_transport_channel())
@@ -57,7 +56,7 @@ class AmqpTransport(TransportHandler):
             self.amqp_config.close()
 
     def get_transport_clientid(self):
-        return self._target_clientid
+        return self._clientid
 
     def get_client_exchange(self):
         return self._my_exchange
