@@ -46,7 +46,7 @@ class MqttTransport(TransportHandler):
         self.client = mqtt.Client(self.client_id)
         logging.info("Subscribing {} on {}".format(self.get_transport_address(), self.get_transport_channel()))
         self.client.on_connect = self.on_connect
-        self.client.on_connect = self.on_message
+        self.client.on_message = self.on_message
         self.client.on_subscribe = self.on_subscribe
         self.client.connect(self.get_transport_address(), self.get_transport_port())
         self.client.subscribe(self.get_transport_channel())
