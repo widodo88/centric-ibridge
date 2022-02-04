@@ -18,10 +18,10 @@ import selectors
 import os
 import os.path
 from common import consts
-from core.transhandler import TransportHandler
+from core.translocal import LocalTransportHandler
 
 
-class UnixSocketTransport(TransportHandler):
+class UnixSocketTransport(LocalTransportHandler):
 
     def __init__(self, config=None, transport_index=0):
         super(UnixSocketTransport, self).__init__(config, transport_index)
@@ -68,4 +68,24 @@ class UnixSocketTransport(TransportHandler):
                         self.stop()
                 except:
                     pass
+
+    def notify_server(self, message_obj):
+        client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client.connect(consts.UNIX_SOCKET_FILE)
+        fd = client.makefile(mode="w")
+        fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
+        fd.flush()
+        fd.close()
+        client.close()
+
+    def send_shutdown_signal(self):
+        client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client.connect(consts.UNIX_SOCKET_FILE)
+        fd = client.makefile(mode="w")
+        fd.write("shut\n")
+        fd.flush()
+        fd.close()
+        client.close()
+
+
 
