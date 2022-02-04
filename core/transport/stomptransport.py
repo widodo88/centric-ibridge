@@ -19,25 +19,29 @@ from stompest.sync import Stomp
 import logging
 import time
 
+
 class StompTransport(TransportHandler):
 
     def __init__(self):
-        self.stomp_config = None
         super(StompTransport, self).__init__()
+        self._stomp_config = None
+        self._target_clientid = None
+        self._client_heartbeat = None
 
     def do_configure(self):
         super(StompTransport, self).do_configure()
-        if not self.stomp_config:
-            self.stomp_config = StompConfig("tcp://{0}:{1}".format(self.get_transport_address(),
-                                                                   self.get_transport_port()),
-                                                                   login = self.get_transport_user(),
-                                                                   passcode = self.get_transport_password(),
-                                                                   version = StompSpec.VERSION_1_2)
-
+        self._target_clientid = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._client_heartbeat = self._get_config_value(consts.MQ_CLIENT_HEARTBEAT, 20000)
+        if not self._stomp_config:
+            self._stomp_config = StompConfig("tcp://{0}:{1}".format(self.get_transport_address(),
+                                                                    self.get_transport_port()),
+                                             login=self.get_transport_user(),
+                                             passcode=self.get_transport_password(),
+                                             version=StompSpec.VERSION_1_2)
 
     def do_listen(self):
         client = Stomp(self.stomp_config)
-        logging.info("Subscribing {} on channel {}".format(self.get_transport_address(),self.get_transport_channel()))
+        logging.info("Subscribing {} on channel {}".format(self.get_transport_address(), self.get_transport_channel()))
         client.connect(versions=[StompSpec.VERSION_1_2], heartBeats=(self.get_client_heartbeat(),
                                                                      self.get_client_heartbeat()))
         client_heartbeat = client.clientHeartBeat / 1000.0
@@ -67,3 +71,9 @@ class StompTransport(TransportHandler):
                 raise
         finally:
             client.disconnect()
+
+    def get_transport_clientid(self):
+        return self._target_clientid
+
+    def get_client_heartbeat(self):
+        return self._client_heartbeat
