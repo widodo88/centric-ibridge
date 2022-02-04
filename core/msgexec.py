@@ -14,6 +14,7 @@ import logging
 from common import consts
 from core.startable import Startable, StartableManager
 from core.msgobject import MessageFactory, MessageEvent, MessageCommand
+from core.msghandler import MessageNotifier
 from core.prochandler import CommandProcessor
 from multiprocessing.pool import ThreadPool
 from configparser import ConfigParser
@@ -237,15 +238,27 @@ class BaseExecutionManager(StartableManager):
         super(BaseExecutionManager, self).__init__(config)
         self._executor_factory = ExecutorFactory()
 
-    def register_listener(self, listener):
-        listener.set_on_message_received(self.on_handle_message)
-
     def get_valid_module(self, message_obj):
         object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]
         for module_obj in object_list:
             if module_obj.is_valid_module(message_obj):
                 return module_obj
         return None
+
+    def _register_module_object(self, message_obj):
+        module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
+        self.add_object(module_object if module_object else None)
+        return module_object
+
+
+class MessageExecutionManager(BaseExecutionManager):
+
+    def __init__(self, config):
+        super(MessageExecutionManager, self).__init__(config)
+
+    def register_listener(self, listener):
+        if isinstance(listener, MessageNotifier):
+            listener.set_on_message_received(self.on_handle_message)
 
     def on_handle_message(self, obj, message):
         message_object = MessageFactory.generate(message) if message else None
@@ -256,11 +269,6 @@ class BaseExecutionManager(StartableManager):
         module_object = module_object if module_object else self._register_module_object(message_object)
         if module_object:
             module_object.execute_module(message_object)
-
-    def _register_module_object(self, message_obj):
-        module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
-        self.add_object(module_object if module_object else None)
-        return module_object
 
 
 
