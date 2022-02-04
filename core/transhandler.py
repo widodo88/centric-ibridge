@@ -43,6 +43,7 @@ class TransportHandler(Startable):
         self._target_username = None
         self._target_password = None
         self._target_channel = None
+        self._target_clientid = None
 
     def do_listen(self):
         pass
@@ -53,6 +54,8 @@ class TransportHandler(Startable):
         self._target_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
         self._target_password = self._get_config_value(consts.MQ_TRANSPORT_PASS, None)
         self._target_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._target_clientid = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._client_heartbeat = self._get_config_value(consts.MQ_CLIENT_HEARTBEAT, 20000)
 
     def do_start(self):
         if self.is_enabled():
@@ -90,6 +93,12 @@ class TransportHandler(Startable):
 
     def get_transport_channel(self):
         return self._target_channel
+
+    def get_transport_clientid(self):
+        return self._target_clientid
+
+    def get_client_heartbeat(self):
+        return self._client_heartbeat
 
     def _get_config_value(self, key, def_value):
         config = self.get_configuration()
