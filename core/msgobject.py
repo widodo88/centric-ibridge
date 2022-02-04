@@ -174,5 +174,5 @@ class MessageFactory(BaseMessage):
             if isinstance(message, bytes) else message if isinstance(message, dict) else None
         klass = cls.get_class(cmd_dict['msgtype']) if cmd_dict and ('msgtype' in cmd_dict) else None
         obj = cls.instantiate(klass) if klass else None
-        obj.setup(cmd_dict) if obj else None
+        obj.setup(cmd_dict) if obj and isinstance(obj, AbstractMessage) else None
         return obj
