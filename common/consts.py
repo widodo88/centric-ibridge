@@ -58,6 +58,8 @@ MQ_TRANSPORT_PORT = "mq.transport.{0}.port"
 MQ_TRANSPORT_USER = "mq.transport.{0}.user"
 MQ_TRANSPORT_PASS = "mq.transport.{0}.passwd"
 MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
+MQ_TRANSPORT_CLIENTID = "mq.transport.{0}.clientid"
+MQ_CLIENT_HEARTBEAT = "mq.transport.{0}.heartbeat"
 
 UNIX_SOCKET_FILE = "/tmp/ibridge.sock"
 LOCAL_TRANSPORT_ADDR = "127.0.0.1"

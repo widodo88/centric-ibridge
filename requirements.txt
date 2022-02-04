@@ -1,5 +1,4 @@
 jproperties==2.1.1
-pkg_resources==0.0.0
 python-dotenv==0.19.2
 six==1.16.0
 paho-mqtt==1.5.1

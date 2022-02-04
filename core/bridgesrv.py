@@ -36,7 +36,9 @@ class BridgeServer(LifeCycleManager):
         cfg = self.get_configuration()
         transport_listener = self.configure_transport()
 
-        local_transport = UnixSocketTransport(cfg) if not oshelper.is_windows() else LocalhostTransport(cfg)
+        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
+            else LocalhostTransport.get_default_instance()
+        local_transport.set_configuration(cfg)
         local_transport.add_listener(transport_listener)
         self.add_object(local_transport)
 
@@ -66,6 +68,20 @@ class BridgeServer(LifeCycleManager):
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
         if shutdown_monitor:
             shutdown_monitor.send_shutdown_signal()
+
+    def notify_server(self, message_obj):
+        config = self.get_configuration()
+        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
+            else LocalhostTransport.get_default_instance()
+        local_transport.set_configuration(config)
+        local_transport.notify_server(message_obj)
+
+    def alt_shutdown_signal(self):
+        config = self.get_configuration()
+        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
+            else LocalhostTransport.get_default_instance()
+        local_transport.set_configuration(config)
+        local_transport.send_shutdown_signal()
 
     def join(self):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)

@@ -16,10 +16,10 @@ import logging
 import socket
 import selectors
 from common import consts
-from core.transhandler import TransportHandler
+from core.translocal import LocalTransportHandler
 
 
-class LocalhostTransport(TransportHandler):
+class LocalhostTransport(LocalTransportHandler):
 
     def __init__(self, config=None, transport_index=0):
         super(LocalhostTransport, self).__init__(config, transport_index)
@@ -64,3 +64,21 @@ class LocalhostTransport(TransportHandler):
                         self.stop()
                 except:
                     pass
+
+    def notify_server(self, message_obj):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
+        fd = client.makefile(mode="w")
+        fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
+        fd.flush()
+        fd.close()
+        client.close()
+
+    def send_shutdown_signal(self):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
+        fd = client.makefile(mode="w")
+        fd.write("shut\n")
+        fd.flush()
+        fd.close()
+        client.close()
