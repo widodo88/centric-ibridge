@@ -23,6 +23,16 @@ from core.startable import Startable
 from core.bridgesrv import BridgeServer
 
 
+class StoreDictKeyPair(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        _dict = dict()
+        for kv in values:
+            k, v = kv.split("=")
+            _dict[k] = v
+        setattr(namespace, self.dest, _dict)
+
+
 class BridgeApp(Startable):
 
     def __init__(self):
@@ -32,7 +42,14 @@ class BridgeApp(Startable):
     def do_configure(self):
         sub_parser = self.parser.add_subparsers()
         sub_parser.add_parser('start', help='Start %(prog)s daemon').set_defaults(func=self.do_start_command)
-        sub_parser.add_parser('stop', help='Start %(prog)s daemon').set_defaults(func=self.do_stop_command)
+        sub_parser.add_parser('stop', help='Stop %(prog)s daemon').set_defaults(func=self.do_stop_command)
+        sub_parser.add_parser('altstop', help='Stop %(prog)s daemon in alternate way')\
+            .set_defaults(func=self.do_alt_stop_command)
+        notify_parser = sub_parser.add_parser('notify', help='Send notification to %(prog)s daemon')
+        notify_parser.add_argument('event', help='Event in format MODULE@SUBMODULE:EVENT_NAME')
+        notify_parser.add_argument('-p', '--params', help='List of parameter required', nargs="+", dest="params",
+                                   action=StoreDictKeyPair, metavar="key1=val1")
+        notify_parser.set_defaults(func=self.do_send_notification)
 
     def do_start(self):
         self.evaluate_args(self.parser.parse_args())
@@ -59,6 +76,17 @@ class BridgeApp(Startable):
         bridgesrv.set_configuration(self.get_configuration())
         bridgesrv.send_shutdown_signal()
         print("Done")
+
+    def do_alt_stop_command(self, args):
+        print("Stopping ", end=" ...")
+        bridgesrv = BridgeServer.get_default_instance()
+        bridgesrv.set_configuration(self.get_configuration())
+        bridgesrv.alt_shutdown_signal()
+        print("Done")
+
+    def do_send_notification(self, args):
+        print("Hello World")
+        print(args)
 
 
 def configure_logging(config):

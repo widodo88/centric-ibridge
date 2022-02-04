@@ -59,6 +59,15 @@ class BaseCommandProcessor(object):
     def set_parent(self, parent):
         self._parent = parent
 
+    def get_parent(self):
+        return self._parent
+
 
 class CommandProcessor(BaseCommandProcessor):
-    pass
+
+    def __init__(self):
+        super(CommandProcessor, self).__init__()
+
+    def do_configure(self):
+        pass
+

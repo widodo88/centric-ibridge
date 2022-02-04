@@ -14,6 +14,7 @@
 
 import logging
 from common import consts
+from core.objfactory import AbstractFactory
 from core.startable import Startable, StartableManager
 from core.msgobject import MessageFactory, MessageEvent, MessageCommand
 from core.msghandler import MessageNotifier
@@ -99,6 +100,7 @@ class BaseExecutor(Startable):
         module = object.__new__(klass)
         module.__init__()
         module.set_parent(parent)
+        module.do_configure()
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
         return module
 
@@ -205,9 +207,10 @@ class CommandExecutor(ModuleExecutor):
             logging.info("End processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
 
 
-class ExecutorFactory(object):
+class ExecutorFactory(AbstractFactory):
 
-    def __init__(self):
+    def __init__(self, config=None):
+        super(ExecutorFactory, self).__init__(config)
         self._command_props = None
         self._event_props = None
         self._configured = False
@@ -220,6 +223,7 @@ class ExecutorFactory(object):
         config_file = "{0}/{1}".format(consts.DEFAULT_SCRIPT_PATH, consts.DEFAULT_EVENT_FILE)
         self._event_props = ConfigParser()
         self._event_props.read(config_file)
+        self._configured = True
 
     def generate(self, config, message_obj):
         module_obj = None
@@ -238,7 +242,7 @@ class BaseExecutionManager(StartableManager):
 
     def __init__(self, config):
         super(BaseExecutionManager, self).__init__(config)
-        self._executor_factory = ExecutorFactory()
+        self._executor_factory = ExecutorFactory(config)
 
     def get_valid_module(self, message_obj):
         object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]
