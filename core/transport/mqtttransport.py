@@ -40,11 +40,11 @@ class MqttTransport(TransportHandler):
         self.subscribed = True
 
     def on_disconnect(self, client, userdata, rc):
-        logging.debug("Disconnected to mqtt broker")
+        logging.info("Disconnected to mqtt broker")
         self.subscribed = False
 
     def on_connect(self, client, obj, flags, rc):
-        logging.debug("Connected to mqtt broker")
+        logging.info("Connected to mqtt broker")
         if not self.subscribed:
             self.client.subscribe(self.get_transport_channel())
 
@@ -57,4 +57,6 @@ class MqttTransport(TransportHandler):
         self.client.on_disconnect = self.on_disconnect
         self.client.connect(self.get_transport_address(), int(self.get_transport_port()))
         self.client.subscribe(self.get_transport_channel())
-        self.client.loop_start()
+
+        while self.is_running():
+            self.client.loop_start()
