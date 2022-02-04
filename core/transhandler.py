@@ -34,6 +34,7 @@ class TransportHandler(MessageHandler):
         self._target_username = None
         self._target_password = None
         self._target_channel = None
+        self._my_exchange = None
 
     def do_listen(self):
         pass
@@ -44,6 +45,7 @@ class TransportHandler(MessageHandler):
         self._target_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
         self._target_password = self._get_config_value(consts.MQ_TRANSPORT_PASS, None)
         self._target_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
 
     def do_start(self):
         if self.is_enabled():
@@ -78,6 +80,9 @@ class TransportHandler(MessageHandler):
 
     def get_transport_channel(self):
         return self._target_channel
+
+    def get_client_exchange(self):
+        return self._my_exchange
 
     def _get_config_value(self, key, def_value):
         config = self.get_configuration()

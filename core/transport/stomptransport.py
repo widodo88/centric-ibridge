@@ -49,7 +49,7 @@ class StompTransport(TransportHandler):
                                                                 StompSpec.ID_HEADER: self.get_transport_clientid()})
         try:
             try:
-                while True:
+                while self.is_running():
                     if client.canRead(2):
                         frame = client.receiveFrame()
                         cmd_str = frame.body
@@ -62,9 +62,7 @@ class StompTransport(TransportHandler):
                         time.sleep(0.4)
                     if (time.time() - client.lastSent) > client_heartbeat:
                         client.beat()
-                    if not self.is_running():
-                        client.unsubscribe(token)
-                        break
+                client.unsubscribe(token)
             except Exception as ex:
                 logging.error(ex)
                 client.unsubscribe(token)
