@@ -61,21 +61,30 @@ class BridgeServer(LifeCycleManager):
         logging.info("Shutting down")
 
     def send_shutdown_signal(self):
-        shutdown_monitor = self.get_object(ShutdownHookMonitor)
-        shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
-        shutdown_monitor.send_shutdown_signal() if shutdown_monitor else None
+        try:
+            shutdown_monitor = self.get_object(ShutdownHookMonitor)
+            shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
+            shutdown_monitor.send_shutdown_signal() if shutdown_monitor else None
+        except Exception as ex:
+            print("Unable to connect to server")
 
     def notify_server(self, message_obj):
-        config = self.get_configuration()
-        local_transport = transhelper.get_local_transport()
-        local_transport.set_configuration(config)
-        local_transport.notify_server(message_obj)
+        try:
+            config = self.get_configuration()
+            local_transport = transhelper.get_local_transport()
+            local_transport.set_configuration(config)
+            local_transport.notify_server(message_obj)
+        except Exception as ex:
+            print("Unable to connect to server")
 
     def alt_shutdown_signal(self):
-        config = self.get_configuration()
-        local_transport = transhelper.get_local_transport()
-        local_transport.set_configuration(config)
-        local_transport.send_shutdown_signal()
+        try:
+            config = self.get_configuration()
+            local_transport = transhelper.get_local_transport()
+            local_transport.set_configuration(config)
+            local_transport.send_shutdown_signal()
+        except Exception as ex:
+            print("Unable to connect to server")
 
     def join(self):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)

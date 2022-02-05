@@ -40,11 +40,15 @@ class ShutdownHookMonitor(Startable):
         self.shutdown_port = int(self.shutdown_port) if isinstance(self.shutdown_port, str) else self.shutdown_port
         client = socket(AF_INET, SOCK_STREAM)
         client.connect((self.shutdown_addr, self.shutdown_port))
-        fd = client.makefile(mode="w")
-        fd.write("shut\n")
-        fd.flush()
-        fd.close()
-        client.close()
+        try:
+            fd = client.makefile(mode="w")
+            try:
+                fd.write("shut\n")
+                fd.flush()
+            finally:
+                fd.close()
+        finally:
+            client.close()
 
     def join(self, timeout=None):
         if not self.is_running():
