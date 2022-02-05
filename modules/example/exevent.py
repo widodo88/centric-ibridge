@@ -22,6 +22,10 @@ class ExampleEvent(CommandProcessor):
     def __init__(self):
         super(ExampleEvent, self).__init__()
 
+    def do_configure(self):
+        # this would be automatically called upon execution
+        pass
+
     @mq_event
     def example_event(self, cono=None, dvno=None):
         logging.info("Hello World EVENT sent with params cono={0}, dvno={1}".format(cono, dvno))

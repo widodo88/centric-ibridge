@@ -22,6 +22,10 @@ class ExampleCommand(CommandProcessor):
     def __init__(self):
         super(ExampleCommand, self).__init__()
 
+    def do_configure(self):
+        # this would be automatically called upon execution
+        pass
+
     @mq_command
     def example_command(self, cono=None, dvno=None):
         logging.info("Hello World COMMAND called with params cono={0}, dvno={1}".format(cono, dvno))
