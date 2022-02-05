@@ -40,4 +40,3 @@ class LocalTransportHandler(TransportHandler):
             return cls.VM_DEFAULT
         finally:
             cls.SINGLETON_LOCK.release()
-

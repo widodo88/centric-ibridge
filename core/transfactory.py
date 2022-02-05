@@ -61,10 +61,3 @@ class TransportPreparer(object):
                 instance = factory.create_object(protocol, index=index)
                 instance.add_listener(listener)
                 container.add_object(instance)
-
-
-
-
-
-
-

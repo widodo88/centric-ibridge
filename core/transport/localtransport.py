@@ -35,7 +35,7 @@ class LocalhostTransport(LocalTransportHandler):
         should_terminate = False
         self.socket.bind((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
         self.socket.setblocking(False)
-        self.socket.listen(1)
+        self.socket.listen()
         self.selector.register(self.socket, selectors.EVENT_READ)
         while self.is_running():
             try:
@@ -62,23 +62,31 @@ class LocalhostTransport(LocalTransportHandler):
                 try:
                     if should_terminate:
                         self.stop()
-                except:
+                except Exception as ex:
                     pass
 
     def notify_server(self, message_obj):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
-        fd = client.makefile(mode="w")
-        fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
-        fd.flush()
-        fd.close()
-        client.close()
+        try:
+            fd = client.makefile(mode="w")
+            try:
+                fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
+                fd.flush()
+            finally:
+                fd.close()
+        finally:
+            client.close()
 
     def send_shutdown_signal(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
-        fd = client.makefile(mode="w")
-        fd.write("shut\n")
-        fd.flush()
-        fd.close()
-        client.close()
+        try:
+            fd = client.makefile(mode="w")
+            try:
+                fd.write("shut\n")
+                fd.flush()
+            finally:
+                fd.close()
+        finally:
+            client.close()

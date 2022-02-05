@@ -29,21 +29,23 @@ class TransportHandler(MessageHandler):
         super(TransportHandler, self).__init__(config=config)
         self._transport_thread = threading.Thread(target=self.listen)
         self._transport_index = transport_index
-        self._target_address = None
-        self._target_port = None
-        self._target_username = None
-        self._target_password = None
-        self._target_channel = None
+        self._transport_address = None
+        self._transport_port = None
+        self._transport_username = None
+        self._transport_password = None
+        self._transport_channel = None
+        self._transport_client_id = None
 
     def do_listen(self):
         pass
 
     def do_configure(self):
-        self._target_address = self._get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
-        self._target_port = self._get_config_value(consts.MQ_TRANSPORT_PORT, None)
-        self._target_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
-        self._target_password = self._get_config_value(consts.MQ_TRANSPORT_PASS, None)
-        self._target_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._transport_address = self._get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
+        self._transport_port = self._get_config_value(consts.MQ_TRANSPORT_PORT, None)
+        self._transport_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
+        self._transport_password = self._get_config_value(consts.MQ_TRANSPORT_PASS, None)
+        self._transport_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._transport_client_id = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
 
     def do_start(self):
         if self.is_enabled():
@@ -61,26 +63,46 @@ class TransportHandler(MessageHandler):
     def get_transport_index(self):
         return self._transport_index
 
+    def get_transport_address(self):
+        return self._transport_address
+
+    def get_transport_port(self):
+        return self._transport_port
+
+    def get_transport_user(self):
+        return self._transport_username
+
+    def get_transport_password(self):
+        return self._transport_password
+
+    def get_transport_channel(self):
+        return self._transport_channel
+
+    def get_transport_client_id(self):
+        return self._transport_client_id
+
     def set_transport_index(self, index):
         self._transport_index = index
 
-    def get_transport_address(self):
-        return self._target_address
+    def set_transport_address(self, address):
+        self._transport_address = address
 
-    def get_transport_port(self):
-        return self._target_port
+    def set_transport_port(self, port):
+        self._transport_port = port
 
-    def get_transport_user(self):
-        return self._target_username
+    def set_transport_user(self, username):
+        self._transport_username = username
 
-    def get_transport_password(self):
-        return self._target_password
+    def set_transport_password(self, passwd):
+        self._transport_password = passwd
 
-    def get_transport_channel(self):
-        return self._target_channel
+    def set_transport_channel(self, channel):
+        self._transport_channel = channel
+
+    def set_transport_client_id(self, client_id):
+        self._transport_client_id = client_id
 
     def _get_config_value(self, key, def_value):
         config = self.get_configuration()
         config_key = str(key).format(self._transport_index)
         return def_value if config_key not in config else config[config_key]
-
