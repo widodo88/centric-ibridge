@@ -71,7 +71,7 @@ class BaseExecutor(Startable):
 
     def _get_klass_module(self, msg_obj):
         class_name = msg_obj if isinstance(msg_obj, str) \
-            else self._configuration.properties(msg_obj.get_module_id())
+            else self._props.properties[msg_obj.get_module_id()]
         components = class_name.split(".")
         return components, ".".join(components[:-1]), class_name
 
@@ -147,12 +147,11 @@ class EventExecutor(ModuleExecutor):
             except Exception as ex:
                 logging.error(ex)
         else:
-            logging.info("Could not parse message correctly")
+            logging.error("Could not parse message correctly")
 
     def assign_event(self, module, func, event):
-        logging.info(
-            "Submitting event {0}.{1}:{2} params: {3}".format(event.MODULE, event.SUBMODULE,
-                                                              event.EVENT, event.PARAMS))
+        logging.info("Submitting event {0}.{1}:{2} params: {3}".format(event.MODULE, event.SUBMODULE,
+                                                                       event.EVENT, event.PARAMS))
         self._pool.apply_async(self.do_execute_event(module, func, event))
 
     @staticmethod
@@ -163,7 +162,7 @@ class EventExecutor(ModuleExecutor):
         except Exception as e:
             logging.error(e)
         finally:
-            logging.info("End processing {0} event on thread {1}".format(event._get_module_id(), get_ident()))
+            logging.info("End processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
 
 
 class CommandExecutor(ModuleExecutor):
@@ -176,7 +175,7 @@ class CommandExecutor(ModuleExecutor):
 
     def has_service(self, message_obj):
         props = self.get_properties()
-        return message_obj.get_module_id() in props.properties.keys()
+        return message_obj.get_module_id() in props.keys()
 
     def execute_module(self, message_obj):
         if self.has_service(message_obj):
@@ -191,9 +190,8 @@ class CommandExecutor(ModuleExecutor):
             logging.error("Could not find service for {0}.{1}".format(msgObj.MODULE, msgObj.SUBMODULE))
 
     def assign_task(self, module, command):
-        logging.info(
-            "Submitting command {0}.{1}:{2} params: {3}".format(command.MODULE, command.SUBMODULE,
-                                                                command.COMMAND, command.PARAMS))
+        logging.info("Submitting command {0}.{1}:{2} params: {3}".format(command.MODULE, command.SUBMODULE,
+                                                                         command.COMMAND, command.PARAMS))
         self._pool.apply_async(self.do_execute, (module, command))
 
     @staticmethod
@@ -212,6 +210,7 @@ class ExecutorFactory(AbstractFactory):
     def __init__(self, config=None):
         super(ExecutorFactory, self).__init__(config=config)
         self._command_props = None
+        self._event_props = None
         self._event_props = None
         self._configured = False
 
@@ -277,7 +276,4 @@ class MessageExecutionManager(BaseExecutionManager):
             if module_object:
                 module_object.execute_module(message_object)
         except Exception as ex:
-            logging.error(ex)
-
-
-
+            logging.exception(ex)

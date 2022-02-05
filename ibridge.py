@@ -123,14 +123,14 @@ class BridgeApp(Startable):
 
     def do_send_command(self, args):
         print("Sending command ", end=" ...")
-        data, event = args.event.split(":")
+        data, command = args.command.split(":")
         module, submodule = data.split("@")
         arg = args.args
         kwarg = args.kwargs
         arg = arg if arg else []
         kwarg = kwarg if kwarg else {}
         message_object = MessageCommand()
-        message_object.set_command(module, submodule, event)
+        message_object.set_command(module, submodule, command)
         message_object.set_parameters(*arg, **kwarg)
         bridgesrv = BridgeServer.get_default_instance()
         bridgesrv.set_configuration(self.get_configuration())
