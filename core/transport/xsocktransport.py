@@ -51,15 +51,12 @@ class UnixSocketTransport(LocalTransportHandler):
                         conn.setblocking(False)
                         self.selector.register(conn, selectors.EVENT_READ)
                     else:
-                        try:
-                            fp = event_socket.makefile('r', buffering=1024)
-                            message = fp.readline()
-                            fp.close()
-                            should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
-                            if not should_terminate:
-                                self.handle_message(message)
-                        finally:
-                            event_socket.close()
+                        fp = event_socket.makefile('r', buffering=1024)
+                        message = fp.readline()
+                        fp.close()
+                        should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
+                        if not should_terminate:
+                            self.handle_message(message)
             except Exception as ex:
                 logging.error(ex)
             finally:
