@@ -21,16 +21,16 @@ from core.transhandler import TransportHandler
 
 
 class MqttTransport(TransportHandler):
-    client = None
 
-    def __init__(self):
+    def __init__(self, config=None, transport_index=0):
+        super(MqttTransport, self).__init__(config=config, transport_index=transport_index)
         self.client = None
-        self.client_id = str(uuid4())
+        self.client_id = None
         self.subscribed = False
-        super(MqttTransport, self).__init__()
 
     def do_configure(self):
         super(MqttTransport, self).do_configure()
+        self.client_id = str(uuid4())
 
     def on_message(self, client, usrdata, msg):
         if msg:
@@ -49,8 +49,8 @@ class MqttTransport(TransportHandler):
             self.client.subscribe(self.get_transport_channel())
 
     def do_listen(self):
-        self.client = mqtt.Client(self.client_id)
         logging.info("Subscribing {} on {}".format(self.get_transport_address(), self.get_transport_channel()))
+        self.client = mqtt.Client(self.client_id)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_subscribe = self.on_subscribe

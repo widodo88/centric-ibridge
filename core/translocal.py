@@ -22,7 +22,7 @@ class LocalTransportHandler(TransportHandler):
     SINGLETON_LOCK = RLock()
 
     def __init__(self, config=None, transport_index=0):
-        super(LocalTransportHandler, self).__init__(config, transport_index)
+        super(LocalTransportHandler, self).__init__(config=config, transport_index=transport_index)
 
     def notify_server(self, message_obj):
         pass

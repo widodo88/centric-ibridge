@@ -47,7 +47,7 @@ class BaseMessage(object):
 class AbstractMessage(BaseMessage):
 
     def __init__(self, message=None, msg_type=None):
-        super(AbstractMessage, self).__init__(msg_type)
+        super(AbstractMessage, self).__init__(msg_type=msg_type)
         self.MODULE = None
         self.SUBMODULE = None
         self.PARAMS = None
@@ -82,7 +82,7 @@ class AbstractMessage(BaseMessage):
 class MessageCommand(AbstractMessage):
 
     def __init__(self, message=None):
-        super(MessageCommand, self).__init__(MODE_COMMAND)
+        super(MessageCommand, self).__init__(msg_type=MODE_COMMAND)
         self.COMMAND = None
         self.process_message(message)
 
@@ -121,7 +121,7 @@ class MessageCommand(AbstractMessage):
 class MessageEvent(AbstractMessage):
 
     def __init__(self, message=None):
-        super(MessageEvent, self).__init__(MODE_EVENT)
+        super(MessageEvent, self).__init__(msg_type=MODE_EVENT)
         self.EVENT = None
         self.process_message(message)
 
@@ -138,6 +138,9 @@ class MessageEvent(AbstractMessage):
     def setup(self, message):
         super(MessageEvent, self).setup(message)
         self.EVENT = message['event']
+
+    def decode_event(self, event):
+        pass
 
     def set_event(self, module, submodule, event):
         self.MODULE = module
@@ -172,6 +175,8 @@ class MessageFactory(BaseMessage):
 
     @classmethod
     def generate(cls, message):
+        if isinstance(message, str):
+            message = message.encode("utf-8")
         cmd_dict = cls.extract_message(message) \
             if isinstance(message, bytes) else message if isinstance(message, dict) else None
         klass = cls.get_class(cmd_dict['msgtype']) if cmd_dict and ('msgtype' in cmd_dict) else None

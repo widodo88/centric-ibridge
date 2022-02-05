@@ -9,27 +9,34 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
+# This module is part of Centric PLM Integration Bridge and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+
 import logging
 from core.transhandler import TransportHandler
-from amqplib import client_0_8 as amqp
+import amqp
+from common import consts
 
 
-class amqpTransport(TransportHandler):
-    def __init__(self):
+class AmqpTransport(TransportHandler):
+    def __init__(self, config=None, transport_index=0):
+        super(AmqpTransport, self).__init__(config=config, transport_index=transport_index)
         self.amqp_config = None
         self.host = None
         self.durable = True
         self.auto_delete = False
         # fanout, direct, topic
         self.type = "direct"
-        super(amqpTransport, self).__init__()
+        self._clientid = None
+        self._my_exchange = None
 
     def do_configure(self):
-        super(amqpTransport, self).do_configure()
-        if not self.amqp_config:
-            self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
-            self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
-                                               password=self.get_transport_password())
+        super(AmqpTransport, self).do_configure()
+        self._clientid = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
+        self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
+        self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
+                                           password=self.get_transport_password())
 
     def do_listen(self):
         client = self.amqp_config.channel(self.get_transport_channel())
@@ -50,3 +57,9 @@ class amqpTransport(TransportHandler):
                 raise
         finally:
             self.amqp_config.close()
+
+    def get_transport_clientid(self):
+        return self._clientid
+
+    def get_client_exchange(self):
+        return self._my_exchange
