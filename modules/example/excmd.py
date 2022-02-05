@@ -24,6 +24,7 @@ class ExampleCommand(CommandProcessor):
 
     def do_configure(self):
         # this would be automatically called upon execution
+        pass
 
     @mq_command
     def example_command(self, cono=None, dvno=None):

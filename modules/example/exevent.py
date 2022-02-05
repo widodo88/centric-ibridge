@@ -24,6 +24,7 @@ class ExampleEvent(CommandProcessor):
 
     def do_configure(self):
         # this would be automatically called upon execution
+        pass
 
     @mq_event
     def example_event(self, cono=None, dvno=None):
