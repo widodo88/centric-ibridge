@@ -19,7 +19,7 @@ from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
 from core. msgexec import MessageExecutionManager
-from utils import oshelper, transhelper
+from utils import transhelper
 
 
 class BridgeServer(LifeCycleManager):

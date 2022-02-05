@@ -62,7 +62,7 @@ class LocalhostTransport(LocalTransportHandler):
                 try:
                     if should_terminate:
                         self.stop()
-                except:
+                except Exception as ex:
                     pass
 
     def notify_server(self, message_obj):

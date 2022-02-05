@@ -35,8 +35,10 @@ class ShutdownHookMonitor(Startable):
 
     def send_shutdown_signal(self):
         config = self.get_configuration()
-        self.shutdown_addr = config[consts.SHUTDOWN_ADDR] if config and consts.SHUTDOWN_ADDR in config else consts.DEFAULT_SHUTDOWN_ADDR
-        self.shutdown_port = config[consts.SHUTDOWN_PORT] if config and consts.SHUTDOWN_PORT in config else consts.DEFAULT_SHUTDOWN_PORT
+        self.shutdown_addr = config[consts.SHUTDOWN_ADDR] if config and consts.SHUTDOWN_ADDR in config \
+            else consts.DEFAULT_SHUTDOWN_ADDR
+        self.shutdown_port = config[consts.SHUTDOWN_PORT] if config and consts.SHUTDOWN_PORT in config \
+            else consts.DEFAULT_SHUTDOWN_PORT
         self.shutdown_port = int(self.shutdown_port) if isinstance(self.shutdown_port, str) else self.shutdown_port
         client = socket(AF_INET, SOCK_STREAM)
         client.connect((self.shutdown_addr, self.shutdown_port))
@@ -59,8 +61,10 @@ class ShutdownHookMonitor(Startable):
         config = self.get_configuration()
         self.selector = selectors.DefaultSelector()
         self.socket = socket(AF_INET, SOCK_STREAM)
-        self.shutdown_addr = config[consts.SHUTDOWN_ADDR] if config and consts.SHUTDOWN_ADDR in config else consts.DEFAULT_SHUTDOWN_ADDR
-        self.shutdown_port = config[consts.SHUTDOWN_PORT] if config and consts.SHUTDOWN_PORT in config else consts.DEFAULT_SHUTDOWN_PORT
+        self.shutdown_addr = config[consts.SHUTDOWN_ADDR] if config and consts.SHUTDOWN_ADDR in config \
+            else consts.DEFAULT_SHUTDOWN_ADDR
+        self.shutdown_port = config[consts.SHUTDOWN_PORT] if config and consts.SHUTDOWN_PORT in config \
+            else consts.DEFAULT_SHUTDOWN_PORT
         self.shutdown_port = int(self.shutdown_port) if isinstance(self.shutdown_port, str) else self.shutdown_port
         self.shutdown_thread = Thread(target=self.listen, daemon=True, name="StopMonitor")
 
@@ -111,6 +115,3 @@ class ShutdownHookMonitor(Startable):
             return cls.VM_DEFAULT
         finally:
             cls.SINGLETON_LOCK.release()
-
-
-

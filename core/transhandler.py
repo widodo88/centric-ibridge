@@ -106,4 +106,3 @@ class TransportHandler(MessageHandler):
         config = self.get_configuration()
         config_key = str(key).format(self._transport_index)
         return def_value if config_key not in config else config[config_key]
-

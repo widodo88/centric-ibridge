@@ -150,7 +150,7 @@ class EventExecutor(ModuleExecutor):
 
     def assign_event(self, module, func, event):
         logging.debug("Submitting event {0}.{1}:{2} params: {3}".format(event.MODULE, event.SUBMODULE,
-                                                                       event.EVENT, event.PARAMS))
+                                                                        event.EVENT, event.PARAMS))
         self._pool.apply_async(self.do_execute_event(module, func, event))
 
     @staticmethod
@@ -186,11 +186,11 @@ class CommandExecutor(ModuleExecutor):
             except Exception as ex:
                 logging.error(ex)
         else:
-            logging.error("Could not find service for {0}.{1}".format(msgObj.MODULE, msgObj.SUBMODULE))
+            logging.error("Could not find service for {0}.{1}".format(message_obj.MODULE, message_obj.SUBMODULE))
 
     def assign_task(self, module, command):
         logging.debug("Submitting command {0}.{1}:{2} params: {3}".format(command.MODULE, command.SUBMODULE,
-                                                                         command.COMMAND, command.PARAMS))
+                                                                          command.COMMAND, command.PARAMS))
         self._pool.apply_async(self.do_execute, (module, command))
 
     @staticmethod

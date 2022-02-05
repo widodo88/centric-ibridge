@@ -70,4 +70,3 @@ class CommandProcessor(BaseCommandProcessor):
 
     def do_configure(self):
         pass
-

@@ -72,6 +72,3 @@ class QueuePoolHandler(MessageHandler):
             else:
                 message = self._queue.get(block=True)
                 self.handle_message(message)
-
-
-
