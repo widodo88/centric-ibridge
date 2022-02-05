@@ -74,6 +74,8 @@ class BridgeApp(Startable):
             self.parser.print_help()
 
     def do_start_command(self, args):
+        config = self.get_configuration()
+        configure_logging(config)
         logging.info(self.parser.description)
         print("Starting server", end=" ...")
         bridgesrv = BridgeServer.get_default_instance()
@@ -108,6 +110,8 @@ class BridgeApp(Startable):
         module, submodule = data.split("@")
         arg = args.args
         kwarg = args.kwargs
+        arg = arg if arg else []
+        kwarg = kwarg if kwarg else {}
         message_object = MessageEvent()
         message_object.set_event(module, submodule, event)
         message_object.set_parameters(*arg, **kwarg)
@@ -125,6 +129,8 @@ class BridgeApp(Startable):
         module, submodule = data.split("@")
         arg = args.args
         kwarg = args.kwargs
+        arg = arg if arg else []
+        kwarg = kwarg if kwarg else {}
         message_object = MessageCommand()
         message_object.set_command(module, submodule, event)
         message_object.set_parameters(*arg, **kwarg)
@@ -151,7 +157,6 @@ def configure_logging(config):
 if __name__ == '__main__':
     prev_sys_argv = sys.argv[:]
     config = dotenv_values(".env")
-    configure_logging(config)
     main_app = BridgeApp()
     main_app.set_configuration(config)
     main_app.start()
