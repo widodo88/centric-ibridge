@@ -43,7 +43,7 @@ log_level = {LOG_LEVEL_INFO: logging.INFO,
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(message)s"
 DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_FILE = "./log/ibridge.log"
-DEFAULT_LOGF_LEVEL = log_level[LOG_LEVEL_INFO]
+DEFAULT_LOG_LEVEL = log_level[LOG_LEVEL_INFO]
 
 DEFAULT_SHUTDOWN_ADDR = "127.0.0.1"
 DEFAULT_SHUTDOWN_PORT = 9999

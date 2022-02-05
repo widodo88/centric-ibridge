@@ -144,7 +144,7 @@ class BridgeApp(Startable):
 
 def configure_logging(config):
     default_level = consts.log_level[config[consts.LOG_LEVEL]] if consts.LOG_LEVEL in config \
-        else consts.DEFAULT_LOGF_LEVEL
+        else consts.DEFAULT_LOG_LEVEL
     log_format = config[consts.LOG_FORMAT] if consts.LOG_FORMAT in config else consts.DEFAULT_LOG_FORMAT
     log_date_format = consts.DEFAULT_LOG_DATE_FORMAT
     log_file = config[consts.LOG_FILE] if consts.LOG_FILE in config else consts.DEFAULT_LOG_FILE
