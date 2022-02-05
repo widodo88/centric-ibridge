@@ -47,7 +47,7 @@ class BaseMessage(object):
 class AbstractMessage(BaseMessage):
 
     def __init__(self, message=None, msg_type=None):
-        super(AbstractMessage, self).__init__(msg_type)
+        super(AbstractMessage, self).__init__(msg_type=msg_type)
         self.MODULE = None
         self.SUBMODULE = None
         self.PARAMS = None
@@ -82,7 +82,7 @@ class AbstractMessage(BaseMessage):
 class MessageCommand(AbstractMessage):
 
     def __init__(self, message=None):
-        super(MessageCommand, self).__init__(MODE_COMMAND)
+        super(MessageCommand, self).__init__(msg_type=MODE_COMMAND)
         self.COMMAND = None
         self.process_message(message)
 
@@ -121,7 +121,7 @@ class MessageCommand(AbstractMessage):
 class MessageEvent(AbstractMessage):
 
     def __init__(self, message=None):
-        super(MessageEvent, self).__init__(MODE_EVENT)
+        super(MessageEvent, self).__init__(msg_type=MODE_EVENT)
         self.EVENT = None
         self.process_message(message)
 

@@ -22,8 +22,8 @@ import time
 
 class StompTransport(TransportHandler):
 
-    def __init__(self):
-        super(StompTransport, self).__init__()
+    def __init__(self, config=None, transport_index=0):
+        super(StompTransport, self).__init__(config=config, transport_index=transport_index)
         self._stomp_config = None
         self._target_clientid = None
         self._client_heartbeat = None

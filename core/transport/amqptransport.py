@@ -19,8 +19,8 @@ from common import consts
 
 
 class AmqpTransport(TransportHandler):
-    def __init__(self):
-        super(AmqpTransport, self).__init__()
+    def __init__(self, config=None, transport_index=0):
+        super(AmqpTransport, self).__init__(config=config, transport_index=transport_index)
         self.amqp_config = None
         self.host = None
         self.durable = True

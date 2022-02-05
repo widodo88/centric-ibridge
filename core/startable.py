@@ -267,7 +267,7 @@ class Startable(object):
 class StartableManager(Startable):
 
     def __init__(self, config=None):
-        super(StartableManager, self).__init__(config)
+        super(StartableManager, self).__init__(config=config)
         self._startable_objects = list()
         self._lock = RLock()
 

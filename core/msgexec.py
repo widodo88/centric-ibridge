@@ -32,7 +32,7 @@ class DummyClass(object):
 class BaseExecutor(Startable):
 
     def __init__(self, config=None, module=None, workers=4):
-        super(BaseExecutor, self).__init__(config)
+        super(BaseExecutor, self).__init__(config=config)
         self._collection = dict()
         self._max_processes = workers
         self._pool = None
@@ -107,7 +107,7 @@ class BaseExecutor(Startable):
 
 class ModuleExecutor(BaseExecutor):
     def __init__(self, config=None, module=None, workers=4):
-        super(ModuleExecutor, self).__init__(config, module, workers)
+        super(ModuleExecutor, self).__init__(config=config, module=module, workers=workers)
         self._module_dict = dict()
 
     def _get_klass_from_cache(self, class_name):
@@ -123,7 +123,7 @@ class ModuleExecutor(BaseExecutor):
 class EventExecutor(ModuleExecutor):
 
     def __init__(self, config=None, module=None, workers=4):
-        super(EventExecutor, self).__init__(config, module, workers)
+        super(EventExecutor, self).__init__(config=config, module=module, workers=workers)
 
     def is_valid_module(self, message_obj):
         return super(EventExecutor, self).is_valid_module(message_obj) and isinstance(message_obj, MessageEvent)
@@ -169,7 +169,7 @@ class EventExecutor(ModuleExecutor):
 class CommandExecutor(ModuleExecutor):
 
     def __init__(self, config=None, module=None, workers=4):
-        super(CommandExecutor, self).__init__(config, module, workers)
+        super(CommandExecutor, self).__init__(config=config, module=module, workers=workers)
 
     def is_valid_module(self, message_obj):
         return super(CommandExecutor, self).is_valid_module(message_obj) and isinstance(message_obj, MessageCommand)
@@ -210,7 +210,7 @@ class CommandExecutor(ModuleExecutor):
 class ExecutorFactory(AbstractFactory):
 
     def __init__(self, config=None):
-        super(ExecutorFactory, self).__init__(config)
+        super(ExecutorFactory, self).__init__(config=config)
         self._command_props = None
         self._event_props = None
         self._configured = False
@@ -230,10 +230,10 @@ class ExecutorFactory(AbstractFactory):
         if not self._configured:
             self.do_configure()
         if isinstance(message_obj, MessageEvent):
-            module_obj = EventExecutor(config, message_obj.MODULE)
+            module_obj = EventExecutor(config=config, module=message_obj.MODULE)
             module_obj.set_properties(self._event_props)
         elif isinstance(message_obj, MessageCommand):
-            module_obj = CommandExecutor(config, message_obj.MODULE)
+            module_obj = CommandExecutor(config=config, module=message_obj.MODULE)
             module_obj.set_properties(self._command_props)
         return module_obj
 
@@ -241,8 +241,8 @@ class ExecutorFactory(AbstractFactory):
 class BaseExecutionManager(StartableManager):
 
     def __init__(self, config):
-        super(BaseExecutionManager, self).__init__(config)
-        self._executor_factory = ExecutorFactory(config)
+        super(BaseExecutionManager, self).__init__(config=config)
+        self._executor_factory = ExecutorFactory(config=config)
 
     def get_valid_module(self, message_obj):
         object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]
@@ -260,21 +260,24 @@ class BaseExecutionManager(StartableManager):
 class MessageExecutionManager(BaseExecutionManager):
 
     def __init__(self, config):
-        super(MessageExecutionManager, self).__init__(config)
+        super(MessageExecutionManager, self).__init__(config=config)
 
     def register_listener(self, listener):
         if isinstance(listener, MessageNotifier):
             listener.set_on_message_received(self.on_handle_message)
 
     def on_handle_message(self, obj, message):
-        message_object = MessageFactory.generate(message) if message else None
-        if (not message_object) or (not self.is_running()):
-            logging.error("Could not parse message correctly: {0}".format(message))
-            return
-        module_object = self.get_valid_module(message_object)
-        module_object = module_object if module_object else self._register_module_object(message_object)
-        if module_object:
-            module_object.execute_module(message_object)
+        try:
+            message_object = MessageFactory.generate(message) if message else None
+            if (not message_object) or (not self.is_running()):
+                logging.error("Could not parse message correctly: {0}".format(message))
+                return
+            module_object = self.get_valid_module(message_object)
+            module_object = module_object if module_object else self._register_module_object(message_object)
+            if module_object:
+                module_object.execute_module(message_object)
+        except Exception as ex:
+            logging.error(ex)
 
 
 

@@ -26,7 +26,7 @@ class TransportMessageNotifier(MessageNotifier):
 class TransportHandler(MessageHandler):
 
     def __init__(self, config=None, transport_index=0):
-        super(TransportHandler, self).__init__(config)
+        super(TransportHandler, self).__init__(config=config)
         self._transport_thread = threading.Thread(target=self.listen)
         self._transport_index = transport_index
         self._target_address = None

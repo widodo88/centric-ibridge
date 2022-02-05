@@ -26,7 +26,7 @@ class ShutdownHookMonitor(Startable):
     SINGLETON_LOCK = RLock()
 
     def __init__(self, config=None):
-        super(ShutdownHookMonitor, self).__init__(config)
+        super(ShutdownHookMonitor, self).__init__(config=config)
         self.socket = None
         self.selector = None
         self.shutdown_thread = None

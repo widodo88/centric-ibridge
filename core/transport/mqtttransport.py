@@ -22,8 +22,8 @@ from core.transhandler import TransportHandler
 
 class MqttTransport(TransportHandler):
 
-    def __init__(self):
-        super(MqttTransport, self).__init__()
+    def __init__(self, config=None, transport_index=0):
+        super(MqttTransport, self).__init__(config=config, transport_index=transport_index)
         self.client = None
         self.client_id = None
         self.subscribed = False

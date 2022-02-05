@@ -22,7 +22,7 @@ from core.translocal import LocalTransportHandler
 class LocalhostTransport(LocalTransportHandler):
 
     def __init__(self, config=None, transport_index=0):
-        super(LocalhostTransport, self).__init__(config, transport_index)
+        super(LocalhostTransport, self).__init__(config=config, transport_index=transport_index)
         self.socket = None
         self.selector = None
 
