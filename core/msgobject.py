@@ -139,6 +139,9 @@ class MessageEvent(AbstractMessage):
         super(MessageEvent, self).setup(message)
         self.EVENT = message['event']
 
+    def decode_event(self, event):
+        pass
+
     def set_event(self, module, submodule, event):
         self.MODULE = module
         self.SUBMODULE = submodule
