@@ -16,6 +16,7 @@ import argparse
 import logging
 import sys
 import os
+import re
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from common import consts
@@ -152,10 +153,18 @@ def configure_logging(config):
     logging.basicConfig(format=log_format, datefmt=log_date_format, handlers=[handler], level=default_level)
 
 
-if __name__ == '__main__':
-    prev_sys_argv = sys.argv[:]
+def main(argv=None):
+    if argv:
+        assert isinstance(argv, list)
+        sys.argv = argv
     config = dotenv_values(".env")
     configure_logging(config)
     main_app = BridgeApp()
     main_app.set_configuration(config)
     main_app.start()
+
+
+if __name__ == '__main__':
+    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())

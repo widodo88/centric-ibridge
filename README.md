@@ -31,12 +31,33 @@ pip install --upgrade pip
 pip install -r ./requirements.txt
 ```
 
-You can start the daemon with this command
+## Running the example
+
+Duplicate and remove the .example files below:
+- .env.example duplicate and rename to .env
+- commands.properties.example duplicate and rename to commands.properties
+- events.properties.example duplicate and rename to events.properties.example
+
+Open a console box, start the daemon with this command:
+
 ```sh
 cd ./centric-ibridge
 source ./venv/bin/activate
 python ./ibridge.py start
 ```
 
+Open another console box, submit and event with this command:
 
+```sh
+cd ./centric-ibridge
+source ./venv/bin/activate
+python ./ibridge.py notify MODULE@EXAMPLE:HELLO_EVENT cono=600 dvno=USG
+```
+Find the execution result in ./log/ibridge.log
 
+Stopping the daemon can be done using this command:
+```sh
+cd ./centric-ibridge
+source ./venv/bin/activate
+python ./ibridge.py stop
+```
