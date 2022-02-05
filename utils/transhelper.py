@@ -12,3 +12,11 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+from utils import oshelper
+from core.transport.xsocktransport import UnixSocketTransport
+from core.transport.localtransport import LocalhostTransport
+
+
+def get_local_transport():
+    return UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
+        else LocalhostTransport.get_default_instance()

@@ -175,8 +175,7 @@ class MessageFactory(BaseMessage):
 
     @classmethod
     def generate(cls, message):
-        if isinstance(message, str):
-            message = message.encode("utf-8")
+        message = message.encode("utf-8") if isinstance(message, str) else message
         cmd_dict = cls.extract_message(message) \
             if isinstance(message, bytes) else message if isinstance(message, dict) else None
         klass = cls.get_class(cmd_dict['msgtype']) if cmd_dict and ('msgtype' in cmd_dict) else None

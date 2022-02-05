@@ -16,12 +16,10 @@ import logging
 from core.startable import LifeCycleManager
 from core.transhandler import TransportMessageNotifier
 from core.shutdn import ShutdownHookMonitor
-from core.transport.xsocktransport import UnixSocketTransport
-from core.transport.localtransport import LocalhostTransport
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
 from core. msgexec import MessageExecutionManager
-from utils import oshelper
+from utils import oshelper, transhelper
 
 
 class BridgeServer(LifeCycleManager):
@@ -36,8 +34,7 @@ class BridgeServer(LifeCycleManager):
         cfg = self.get_configuration()
         transport_listener = self.configure_transport()
 
-        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-            else LocalhostTransport.get_default_instance()
+        local_transport = transhelper.get_local_transport()
         local_transport.set_configuration(cfg)
         local_transport.add_listener(transport_listener)
         self.add_object(local_transport)
@@ -66,25 +63,21 @@ class BridgeServer(LifeCycleManager):
     def send_shutdown_signal(self):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
-        if shutdown_monitor:
-            shutdown_monitor.send_shutdown_signal()
+        shutdown_monitor.send_shutdown_signal() if shutdown_monitor else None
 
     def notify_server(self, message_obj):
         config = self.get_configuration()
-        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-            else LocalhostTransport.get_default_instance()
+        local_transport = transhelper.get_local_transport()
         local_transport.set_configuration(config)
         local_transport.notify_server(message_obj)
 
     def alt_shutdown_signal(self):
         config = self.get_configuration()
-        local_transport = UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-            else LocalhostTransport.get_default_instance()
+        local_transport = transhelper.get_local_transport()
         local_transport.set_configuration(config)
         local_transport.send_shutdown_signal()
 
     def join(self):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
-        if shutdown_monitor:
-            shutdown_monitor.join()
+        shutdown_monitor.join() if shutdown_monitor else None

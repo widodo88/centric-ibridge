@@ -93,8 +93,7 @@ class ShutdownHookMonitor(Startable):
                 logging.error(ex)
             finally:
                 try:
-                    if should_terminate:
-                        self.stop()
+                    self.stop() if should_terminate else None
                 except:
                     pass
 
