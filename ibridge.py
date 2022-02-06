@@ -20,8 +20,10 @@ import re
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from common import consts
-from core.startable import Startable
+from core.baseappsrv import BaseAppServer
 from core.bridgesrv import BridgeServer
+from core.reststarter import RESTServerStarter
+from core.shutdn import ShutdownHookMonitor
 from core.msgobject import MessageEvent, MessageCommand
 
 
@@ -35,17 +37,22 @@ class StoreDictKeyPair(argparse.Action):
         setattr(namespace, self.dest, _dict)
 
 
-class BridgeApp(Startable):
+class BridgeApp(BaseAppServer):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
+        self._service_available = [[BridgeServer, False], [RESTServerStarter, False]]
+        self._should_join = False
         self.parser = argparse.ArgumentParser(prog='ibridge', description='Integration Bridge Server v3.0')
 
     def do_configure(self):
+        self.parse_config()
+        self.set_transport_listener(self.create_transport_listener())
+
         sub_parser = self.parser.add_subparsers()
         sub_parser.add_parser('start', help='Start %(prog)s daemon').set_defaults(func=self.do_start_command)
         sub_parser.add_parser('stop', help='Stop %(prog)s daemon').set_defaults(func=self.do_stop_command)
-        sub_parser.add_parser('altstop', help='Stop %(prog)s daemon in alternate way')\
+        sub_parser.add_parser('altstop', help='Stop %(prog)s daemon in alternate way') \
             .set_defaults(func=self.do_alt_stop_command)
 
         notify_parser = sub_parser.add_parser('notify', help='Send notification to %(prog)s daemon')
@@ -59,12 +66,13 @@ class BridgeApp(Startable):
         command_parser = sub_parser.add_parser('command', help='Send command to %(prog)s daemon')
         command_parser.add_argument('command', help='Command in format MODULE@SUBMODULE:proc_name')
         command_parser.add_argument('-a', '--args', help='List of parameter required', nargs="+", dest="args",
-                                   metavar="val1 ")
+                                    metavar="val1 ")
         command_parser.add_argument('-k', '--kwargs', help='List of parameter required', nargs="+", dest="kwargs",
-                                   action=StoreDictKeyPair, metavar="key1=val1")
+                                    action=StoreDictKeyPair, metavar="key1=val1")
         command_parser.set_defaults(func=self.do_send_command)
 
     def do_start(self):
+        super(BridgeApp, self).do_start()
         self.evaluate_args(self.parser.parse_args())
 
     def evaluate_args(self, args):
@@ -74,21 +82,38 @@ class BridgeApp(Startable):
         else:
             self.parser.print_help()
 
+    def configure_shutdown_monitor(self):
+        config = self.get_configuration()
+        shutdown_hook = ShutdownHookMonitor.get_default_instance()
+        shutdown_hook.set_configuration(config)
+        shutdown_hook.add_listener(self.get_transport_listener())
+        return shutdown_hook
+
+    def configure_app_server(self, app_server_klass, standalone=False):
+        if not issubclass(app_server_klass, BaseAppServer):
+            return
+        server_instance = object.__new__(app_server_klass)
+        server_instance.__init__(config=self.get_configuration(), standalone=standalone)
+        server_instance.set_transport_listener(self.get_transport_listener())
+        return server_instance
+
+    def configure_services(self):
+        service_enabled = [service for service in self._service_available if service[1]]
+        for service in service_enabled:
+            self.add_object(self.configure_app_server(service[0]))
+
     def do_start_command(self, args):
         logging.info(self.parser.description)
         print("Starting server", end=" ...")
-        bridgesrv = BridgeServer.get_default_instance()
-        bridgesrv.set_configuration(self.get_configuration())
-        bridgesrv.start()
+        self.add_object(self.configure_shutdown_monitor())
+        self.configure_services()
+        self._should_join = True
         print("Done")
-        bridgesrv.join()
 
     def do_stop_command(self, args):
         print("Stopping ", end=" ...")
-        bridgesrv = BridgeServer.get_default_instance()
-        bridgesrv.set_configuration(self.get_configuration())
         try:
-            bridgesrv.send_shutdown_signal()
+            self.send_shutdown_signal()
             print("Done")
         except Exception as ex:
             print("Unable to shutdown \n\nReason: {0}".format(ex))
@@ -141,6 +166,41 @@ class BridgeApp(Startable):
         except Exception as ex:
             print("Unable to send notification \n\nReason: {0}".format(ex))
 
+    def send_shutdown_signal(self):
+        try:
+            shutdown_monitor = self.configure_shutdown_monitor()
+            shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
+            shutdown_monitor.send_shutdown_signal() if shutdown_monitor else None
+        except Exception as ex:
+            print("Unable to connect to server")
+
+    def parse_config(self):
+        config = self.get_configuration()
+        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else False
+        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
+        bridge_enabled = bridge_enabled if bridge_enabled else False
+        restapi_enabled = restapi_enabled if restapi_enabled else False
+        self._service_available[0][1] = bridge_enabled
+        self._service_available[1][1] = restapi_enabled
+
+    def is_bridge_enabled(self):
+        return self._bridge_enabled
+
+    def is_restapi_enabled(self):
+        return self._restapi_enabled
+
+    def handle_stop_event(self, obj):
+        self.stop()
+        logging.info("Shutting down")
+
+    def join(self):
+        shutdown_monitor = self.get_object(ShutdownHookMonitor)
+        shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
+        shutdown_monitor.join() if shutdown_monitor else None
+
+    def listen(self):
+        self.join() if self._should_join else None
+
 
 def configure_logging(config):
     default_level = consts.log_level[config[consts.LOG_LEVEL]] if consts.LOG_LEVEL in config \
@@ -162,6 +222,7 @@ def main(argv=None):
     main_app = BridgeApp()
     main_app.set_configuration(config)
     main_app.start()
+    main_app.listen()
 
 
 if __name__ == '__main__':

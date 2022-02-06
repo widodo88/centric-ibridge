@@ -20,6 +20,9 @@ SHUTDOWN_PORT = "shutdown.port"
 KRAKEN_REST_BASE_URL = "kraken.rest.base.url"
 CENTRIC_REST_BASE_URL = "centric.rest.base.url"
 
+BRIDGE_ENABLED = "bridge.enabled"
+RESTAPI_ENABLED = "restapi.enabled"
+
 LOG_LEVEL = "log.level"
 LOG_FORMAT = "log.format"
 LOG_FILE = "log.file"
