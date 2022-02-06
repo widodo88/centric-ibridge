@@ -238,6 +238,6 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+    consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
     sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
     sys.exit(main())
