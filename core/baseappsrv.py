@@ -63,5 +63,7 @@ class BaseAppServer(LifeCycleManager):
 
     def _lazy_configure(self):
         config = self.get_configuration()
-        self._production_mode = False if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
-        self._production_mode = self._production_mode if self._production_mode else False
+        mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
+        mode = "false" if mode is None else mode
+        self._production_mode = mode.lower() == "true"
+
