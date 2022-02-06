@@ -77,3 +77,7 @@ TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTr
                   MQ_TRANSPORT_STOMP: "core.transport.stomptransport.StompTransport",
                   MQ_TRANSPORT_MQTT: "core.transport.mqtttransport.MqttTransport",
                   MQ_TRANSPORT_AMQP: "core.transport.amqptransport.AmqpTransport"}
+
+SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
+                      ["core.reststarter.RESTServerStarter", False]]
+BRIDGE_SERVICE = SERVICES_AVAILABLE[0][0]

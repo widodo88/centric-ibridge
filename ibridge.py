@@ -21,8 +21,6 @@ from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from common import consts
 from core.baseappsrv import BaseAppServer
-from core.bridgesrv import BridgeServer
-from core.reststarter import RESTServerStarter
 from core.shutdn import ShutdownHookMonitor
 from core.msgobject import MessageEvent, MessageCommand
 
@@ -41,7 +39,6 @@ class BridgeApp(BaseAppServer):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
-        self._service_available = [[BridgeServer, False], [RESTServerStarter, False]]
         self._should_join = False
         self.parser = argparse.ArgumentParser(prog='ibridge', description='Integration Bridge Server v3.0')
 
@@ -89,7 +86,8 @@ class BridgeApp(BaseAppServer):
         shutdown_hook.add_listener(self.get_transport_listener())
         return shutdown_hook
 
-    def configure_app_server(self, app_server_klass, standalone=False):
+    def configure_app_server(self, app_server_klass_name, standalone=False):
+        app_server_klass = self._get_klass(app_server_klass_name)
         if not issubclass(app_server_klass, BaseAppServer):
             return
         server_instance = object.__new__(app_server_klass)
@@ -98,7 +96,7 @@ class BridgeApp(BaseAppServer):
         return server_instance
 
     def configure_services(self):
-        service_enabled = [service for service in self._service_available if service[1]]
+        service_enabled = [service for service in consts.SERVICES_AVAILABLE if service[1]]
         for service in service_enabled:
             self.add_object(self.configure_app_server(service[0]))
 
@@ -139,7 +137,8 @@ class BridgeApp(BaseAppServer):
         message_object = MessageEvent()
         message_object.set_event(module, submodule, event)
         message_object.set_parameters(*arg, **kwarg)
-        bridgesrv = BridgeServer.get_default_instance()
+        appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
+        bridgesrv = appserver_klass.get_default_instance()
         bridgesrv.set_configuration(self.get_configuration())
         try:
             bridgesrv.notify_server(message_object)
@@ -158,7 +157,8 @@ class BridgeApp(BaseAppServer):
         message_object = MessageCommand()
         message_object.set_command(module, submodule, command)
         message_object.set_parameters(*arg, **kwarg)
-        bridgesrv = BridgeServer.get_default_instance()
+        appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
+        bridgesrv = appserver_klass.get_default_instance()
         bridgesrv.set_configuration(self.get_configuration())
         try:
             bridgesrv.notify_server(message_object)
@@ -180,8 +180,25 @@ class BridgeApp(BaseAppServer):
         restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
         bridge_enabled = bridge_enabled if bridge_enabled else False
         restapi_enabled = restapi_enabled if restapi_enabled else False
-        self._service_available[0][1] = bridge_enabled
-        self._service_available[1][1] = restapi_enabled
+        consts.SERVICES_AVAILABLE[0][1] = bridge_enabled
+        consts.SERVICES_AVAILABLE[1][1] = restapi_enabled
+
+    @staticmethod
+    def _get_klass_module(class_name):
+        components = class_name.split(".")
+        return components, ".".join(components[:-1])
+
+    def _get_klass(self, class_name):
+        mod = None
+        components, import_modules = self._get_klass_module(class_name)
+        try:
+            mod = __import__(import_modules)
+            for cmp in components[1:]:
+                mod = getattr(mod, cmp)
+            mod = mod if issubclass(mod, BaseAppServer) else None
+        except Exception as ex:
+            logging.error(ex)
+        return mod
 
     def handle_stop_event(self, obj):
         self.stop()
