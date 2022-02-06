@@ -67,6 +67,62 @@ class StartableListener(object):
         """Facilitating to notify observer upon configured event"""
         self._configured(obj, config) if self._configured else None
 
+    def get_on_starting(self):
+        """Get on Starting Event handler"""
+        return self._starting
+
+    def set_on_starting(self, starting_func):
+        """Set on Starting Event handler"""
+        self._starting = starting_func
+
+    def get_on_started(self):
+        """Get on Started Event handler"""
+        return self._started
+
+    def set_on_started(self, started_func):
+        """Set on Started Event handler"""
+        self._started = started_func
+
+    def get_on_stopping(self):
+        """Get on Stopping Event handler"""
+        return self._stopping
+
+    def set_on_stopping(self, stopping_func):
+        """Set on Stopping Event handler"""
+        self._stopping = stopping_func
+
+    def get_on_stopped(self):
+        """Get on Stopped Event handler"""
+        return self._stopped
+
+    def set_on_stopped(self, stopped_func):
+        """Set on Started Event handler"""
+        self._stopped = stopped_func
+
+    def get_on_configuring(self):
+        """Get on Configuring Event handler"""
+        return self._configuring
+
+    def set_on_configuring(self, configuring_func):
+        """Set on Configuring Event handler"""
+        self._configuring = configuring_func
+
+    def get_on_configured(self):
+        """Get on Configured Event handler"""
+        return self._configured
+
+    def set_on_configured(self, configured_func):
+        """Set on Configured Event handler"""
+        self._configured = configured_func
+
+    def get_on_failure(self):
+        """Get on Failure Event handler"""
+        return self._failure
+
+    def set_on_failure(self, failure_func):
+        """Set on Failure Event handler"""
+        self._failure = failure_func
+
 
 class Startable(object):
     """An Abstract Class for generic startable component"""

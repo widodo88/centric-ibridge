@@ -24,9 +24,15 @@ from utils import transhelper
 
 class BridgeServer(LifeCycleManager):
 
+    def __init__(self, config=None, standalone: bool = True):
+        super(BridgeServer, self).__init__(config=config)
+        self._standalone = standalone
+        self._transport_listener = None
+
     def configure_transport(self):
         config = self.get_configuration()
-        transport_listener = TransportMessageNotifier(stopped_func=self.on_terminate_signal)
+        transport_listener = self.get_transport_listener()
+        transport_listener = transport_listener if transport_listener else self.create_transport_listener()
         TransportPreparer.prepare_transports(config, transport_listener, self)
         return transport_listener
 
@@ -49,10 +55,11 @@ class BridgeServer(LifeCycleManager):
         message_pool.add_listener(message_listener)
         self.add_object(message_pool)
 
-        shutdown_hook = ShutdownHookMonitor.get_default_instance()
-        shutdown_hook.set_configuration(cfg)
-        shutdown_hook.add_listener(transport_listener)
-        self.add_object(shutdown_hook)
+        if self.is_standalone():
+            shutdown_hook = ShutdownHookMonitor.get_default_instance()
+            shutdown_hook.set_configuration(cfg)
+            shutdown_hook.add_listener(transport_listener)
+            self.add_object(shutdown_hook)
 
         super(BridgeServer, self).do_configure()
 
@@ -61,6 +68,8 @@ class BridgeServer(LifeCycleManager):
         logging.info("Shutting down")
 
     def send_shutdown_signal(self):
+        if self.is_standalone():
+            return
         try:
             shutdown_monitor = self.get_object(ShutdownHookMonitor)
             shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
@@ -87,6 +96,28 @@ class BridgeServer(LifeCycleManager):
             print("Unable to connect to server")
 
     def join(self):
+        if self.is_standalone():
+            return
         shutdown_monitor = self.get_object(ShutdownHookMonitor)
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
         shutdown_monitor.join() if shutdown_monitor else None
+
+    def is_standalone(self):
+        return self._standalone
+
+    def get_transport_listener(self):
+        return self._transport_listener
+
+    def set_transport_listener(self, listener):
+        self._transport_listener = listener
+
+    def create_transport_listener(self):
+        return TransportMessageNotifier(stopped_func=self.on_terminate_signal)
+
+    @property
+    def standalone(self):
+        return self._standalone
+
+    @standalone.setter
+    def standalone(self, value):
+        self._standalone = value

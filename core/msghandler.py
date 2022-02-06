@@ -34,6 +34,9 @@ class MessageNotifier(StartableListener):
     def set_on_message_received(self, message_func=None):
         self._message = message_func
 
+    def get_on_message_received(self):
+        return self._message
+
 
 class MessageHandler(Startable):
 
