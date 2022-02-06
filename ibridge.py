@@ -183,12 +183,6 @@ class BridgeApp(BaseAppServer):
         self._service_available[0][1] = bridge_enabled
         self._service_available[1][1] = restapi_enabled
 
-    def is_bridge_enabled(self):
-        return self._bridge_enabled
-
-    def is_restapi_enabled(self):
-        return self._restapi_enabled
-
     def handle_stop_event(self, obj):
         self.stop()
         logging.info("Shutting down")
