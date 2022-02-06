@@ -67,6 +67,7 @@ class BridgeApp(BaseAppServer):
         command_parser.add_argument('-k', '--kwargs', help='List of parameter required', nargs="+", dest="kwargs",
                                     action=StoreDictKeyPair, metavar="key1=val1")
         command_parser.set_defaults(func=self.do_send_command)
+        super(BridgeApp, self).do_configure()
 
     def do_start(self):
         super(BridgeApp, self).do_start()

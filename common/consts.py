@@ -38,6 +38,8 @@ MQ_TRANSPORT_CLIENTID = "mq.transport.{0}.clientid"
 MQ_CLIENT_HEARTBEAT = "mq.transport.{0}.heartbeat"
 MQ_MY_EXCHANGE = "mq.transport.{0}.myexchange"
 
+PRODUCTION_MODE = "production.mode"
+
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
 LOG_LEVEL_ERROR = "WARNING"
