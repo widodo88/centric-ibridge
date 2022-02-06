@@ -177,12 +177,12 @@ class BridgeApp(BaseAppServer):
 
     def parse_config(self):
         config = self.get_configuration()
-        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else False
-        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
-        bridge_enabled = bridge_enabled if bridge_enabled else False
-        restapi_enabled = restapi_enabled if restapi_enabled else False
-        consts.SERVICES_AVAILABLE[0][1] = bridge_enabled
-        consts.SERVICES_AVAILABLE[1][1] = restapi_enabled
+        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else "false"
+        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else "false"
+        bridge_enabled = "false" if bridge_enabled is None else bridge_enabled
+        restapi_enabled = "false" if restapi_enabled is None else restapi_enabled
+        consts.SERVICES_AVAILABLE[0][1] = bridge_enabled.lower() == "true"
+        consts.SERVICES_AVAILABLE[1][1] = restapi_enabled.lower() == "true"
 
     @staticmethod
     def _get_klass_module(class_name):
@@ -238,6 +238,6 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
     sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
     sys.exit(main())
