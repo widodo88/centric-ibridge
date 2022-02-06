@@ -20,10 +20,10 @@ import re
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from common import consts
+from core.baseappsrv import BaseAppServer
 from core.bridgesrv import BridgeServer
+from core.reststarter import RESTServerStarter
 from core.shutdn import ShutdownHookMonitor
-from core.startable import LifeCycleManager
-from core.transhandler import TransportMessageNotifier
 from core.msgobject import MessageEvent, MessageCommand
 
 
@@ -37,19 +37,17 @@ class StoreDictKeyPair(argparse.Action):
         setattr(namespace, self.dest, _dict)
 
 
-class BridgeApp(LifeCycleManager):
+class BridgeApp(BaseAppServer):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
-        self._bridge_enabled = False
-        self._restapi_enabled = False
-        self._transport_listener = None
+        self._service_available = [[BridgeServer, False], [RESTServerStarter, False]]
         self._should_join = False
         self.parser = argparse.ArgumentParser(prog='ibridge', description='Integration Bridge Server v3.0')
 
     def do_configure(self):
         self.parse_config()
-        self._transport_listener = self.create_transport_listener()
+        self.set_transport_listener(self.create_transport_listener())
 
         sub_parser = self.parser.add_subparsers()
         sub_parser.add_parser('start', help='Start %(prog)s daemon').set_defaults(func=self.do_start_command)
@@ -91,25 +89,24 @@ class BridgeApp(LifeCycleManager):
         shutdown_hook.add_listener(self.get_transport_listener())
         return shutdown_hook
 
-    def configure_bridge_server(self):
-        bridgesrv = BridgeServer.get_default_instance()
-        bridgesrv.standalone = False
-        bridgesrv.set_configuration(self.get_configuration())
-        bridgesrv.set_transport_listener(self.get_transport_listener())
-        return bridgesrv
+    def configure_app_server(self, app_server_klass, standalone=False):
+        if not issubclass(app_server_klass, BaseAppServer):
+            return
+        server_instance = object.__new__(app_server_klass)
+        server_instance.__init__(config=self.get_configuration(), standalone=standalone)
+        server_instance.set_transport_listener(self.get_transport_listener())
+        return server_instance
 
-    def configure_restapi_server(self):
-        # TODO: Start REST API Server here
-        pass
+    def configure_services(self):
+        service_enabled = [service for service in self._service_available if service[1]]
+        for service in service_enabled:
+            self.add_object(self.configure_app_server(service[0]))
 
     def do_start_command(self, args):
         logging.info(self.parser.description)
         print("Starting server", end=" ...")
         self.add_object(self.configure_shutdown_monitor())
-        if self.is_bridge_enabled():
-            self.add_object(self.configure_bridge_server())
-        if self.is_restapi_enabled():
-            self.configure_restapi_server()
+        self.configure_services()
         self._should_join = True
         print("Done")
 
@@ -179,10 +176,12 @@ class BridgeApp(LifeCycleManager):
 
     def parse_config(self):
         config = self.get_configuration()
-        self._bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else False
-        self._restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
-        self._bridge_enabled = self._bridge_enabled if self._bridge_enabled else False
-        self._restapi_enabled = self._restapi_enabled if self._restapi_enabled else False
+        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else False
+        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
+        bridge_enabled = bridge_enabled if bridge_enabled else False
+        restapi_enabled = restapi_enabled if restapi_enabled else False
+        self._service_available[0][1] = bridge_enabled
+        self._service_available[1][1] = restapi_enabled
 
     def is_bridge_enabled(self):
         return self._bridge_enabled
@@ -190,15 +189,9 @@ class BridgeApp(LifeCycleManager):
     def is_restapi_enabled(self):
         return self._restapi_enabled
 
-    def on_terminate_signal(self, obj):
+    def handle_stop_event(self, obj):
         self.stop()
         logging.info("Shutting down")
-
-    def create_transport_listener(self):
-        return TransportMessageNotifier(stopped_func=self.on_terminate_signal)
-
-    def get_transport_listener(self):
-        return self._transport_listener
 
     def join(self):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)

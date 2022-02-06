@@ -13,8 +13,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
-from core.startable import LifeCycleManager
-from core.transhandler import TransportMessageNotifier
+from core.baseappsrv import BaseAppServer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
@@ -22,23 +21,15 @@ from core. msgexec import MessageExecutionManager
 from utils import transhelper
 
 
-class BridgeServer(LifeCycleManager):
+class BridgeServer(BaseAppServer):
 
     def __init__(self, config=None, standalone: bool = True):
-        super(BridgeServer, self).__init__(config=config)
-        self._standalone = standalone
-        self._transport_listener = None
-
-    def configure_transport(self):
-        config = self.get_configuration()
-        transport_listener = self.get_transport_listener()
-        transport_listener = transport_listener if transport_listener else self.create_transport_listener()
-        TransportPreparer.prepare_transports(config, transport_listener, self)
-        return transport_listener
+        super(BridgeServer, self).__init__(config=config, standalone=standalone)
 
     def do_configure(self):
         cfg = self.get_configuration()
         transport_listener = self.configure_transport()
+        TransportPreparer.prepare_transports(cfg, transport_listener, self)
 
         local_transport = transhelper.get_local_transport()
         local_transport.set_configuration(cfg)
@@ -63,9 +54,9 @@ class BridgeServer(LifeCycleManager):
 
         super(BridgeServer, self).do_configure()
 
-    def on_terminate_signal(self, obj):
+    def handle_stop_event(self, obj):
         self.stop()
-        logging.info("Shutting down")
+        logging.info("Shutting down bridge")
 
     def send_shutdown_signal(self):
         if self.is_standalone():
@@ -102,22 +93,3 @@ class BridgeServer(LifeCycleManager):
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
         shutdown_monitor.join() if shutdown_monitor else None
 
-    def is_standalone(self):
-        return self._standalone
-
-    def get_transport_listener(self):
-        return self._transport_listener
-
-    def set_transport_listener(self, listener):
-        self._transport_listener = listener
-
-    def create_transport_listener(self):
-        return TransportMessageNotifier(stopped_func=self.on_terminate_signal)
-
-    @property
-    def standalone(self):
-        return self._standalone
-
-    @standalone.setter
-    def standalone(self, value):
-        self._standalone = value
