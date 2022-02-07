@@ -44,7 +44,7 @@ class RESTServerStarter(BaseAppServer):
             '-b', '0.0.0.0:8080',
             '-n', 'centric-rest-ibridge',
             '-p', str(pid_file),
-            '--error-logfile', consts.RESTAPI_LOG_FILE
+            '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
         ]
         run_args += ["""irest:create_app()"""]
         gunicorn_master_proc = None
