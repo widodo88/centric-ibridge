@@ -66,52 +66,32 @@ class AbstractRestService(object):
         url = self._bind_url(resource)
         cookies = self._cookies if not self._parent else self._parent.cookies
         resp = requests.get(url, params=kwargs, auth=self.get_auth(), cookies=cookies)
-        cookies = resp.cookies.get('JSESSIONID')
-        if cookies:
-            if self._parent:
-                if ('JSESSIONID' not in self._parent.cookies) or (self._parent.cookies['JSESSIONID'] != cookies):
-                    self._parent.cookies['JSESSIONID'] = cookies
-            else:
-                self._cookies['JSESSIONID'] = cookies
+        cookies = self._parent if self._parent else self._cookies
+        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
         return resp
 
     def post(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
         cookies = self._cookies if not self._parent else self._parent.cookies
         resp = requests.post(url, data, json_data, params=kwargs, auth=self.get_auth(), cookies=cookies)
-        cookies = resp.cookies.get('JSESSIONID')
-        if cookies:
-            if self._parent:
-                if ('JSESSIONID' not in self._parent.cookies) or (self._parent.cookies['JSESSIONID'] != cookies):
-                    self._parent.cookies['JSESSIONID'] = cookies
-            else:
-                self._cookies['JSESSIONID'] = cookies
+        cookies = self._parent if self._parent else self._cookies
+        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
         return resp
 
     def head(self, resource, **kwargs):
         url = self._bind_url(resource)
         cookies = self._cookies if not self._parent else self._parent.cookies
         resp = requests.head(url, **kwargs, auth=self.get_auth(), cookies=cookies)
-        cookies = resp.cookies.get('JSESSIONID')
-        if cookies:
-            if self._parent:
-                if ('JSESSIONID' not in self._parent.cookies) or (self._parent.cookies['JSESSIONID'] != cookies):
-                    self._parent.cookies['JSESSIONID'] = cookies
-            else:
-                self._cookies['JSESSIONID'] = cookies
+        cookies = self._parent if self._parent else self._cookies
+        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
         return resp
 
     def put(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
         cookies = self._cookies if not self._parent else self._parent.cookies
         resp = requests.put(url, data, json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
-        cookies = resp.cookies.get('JSESSIONID')
-        if cookies:
-            if self._parent:
-                if ('JSESSIONID' not in self._parent.cookies) or (self._parent.cookies['JSESSIONID'] != cookies):
-                    self._parent.cookies['JSESSIONID'] = cookies
-            else:
-                self._cookies['JSESSIONID'] = cookies
+        cookies = self._parent if self._parent else self._cookies
+        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
         return resp
 
     def get_cookies(self):
