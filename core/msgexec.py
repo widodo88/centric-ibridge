@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
+import traceback
 from common import consts
 from common import modconfig
 from core.objfactory import AbstractFactory
@@ -169,8 +170,8 @@ class EventExecutor(ModuleExecutor):
         try:
             logging.debug("Processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
             module.perform_notify(func, event)
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.error(traceback.format_exc())
         finally:
             logging.debug("End processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
 
@@ -209,8 +210,8 @@ class CommandExecutor(ModuleExecutor):
         try:
             logging.debug("Processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
             module.perform_exec(command)
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.error(traceback.format_exc())
         finally:
             logging.debug("End processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
 

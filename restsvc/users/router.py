@@ -1,12 +1,4 @@
-#!/bin/sh
-"""true"
-BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
-ENV_DIR="$BASE_DIR/venv/bin"
-PYTHON="python3"
-INTERPRETER="$ENV_DIR/$PYTHON"
-exec $INTERPRETER "$0" "$@"
-exit 127
-"""
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
@@ -22,14 +14,22 @@ exit 127
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import sys
-import os
-import re
-from common import consts
-from ibridge import main
+from fastapi_jwt_auth import AuthJWT
+from fastapi import APIRouter, Depends, HTTPException
+from restsvc.users.models.model import User
 
-if __name__ == '__main__':
-    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
-    print(consts.DEF_SCRIPT_PATH)
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(main())
+# APIRouter creates path operations for user module
+router = APIRouter(
+    prefix="/users",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+)
+
+
+@router.post('/login')
+def login(user: User, authorize: AuthJWT = Depends()):
+    if user.username != "test" or user.password != "test":
+        raise HTTPException(status_code=401, detail="Bad username or password")
+
+    access_token = authorize.create_access_token(subject=user.username)
+    return {"access_token": access_token}
