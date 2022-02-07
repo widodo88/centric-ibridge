@@ -22,13 +22,10 @@ import logging
 from common import consts
 from dotenv import dotenv_values
 from fastapi.responses import JSONResponse
-from fastapi_jwt_auth import AuthJWT
 from starlette.staticfiles import StaticFiles
 from logging.handlers import TimedRotatingFileHandler
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi import FastAPI, Request, Depends, HTTPException
-from restsvc.users.models.model import User
-from restsvc import register_rest_modules
 from common import restapikey
 
 
@@ -55,31 +52,43 @@ def configure_logging(config):
 def create_app():
     config = do_configure()
     configure_logging(config)
-    fast_app = FastAPI()
+    fast_app = FastAPI(title="iBridge Server")
     fast_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static")),
                    name="static")
 
-    @fast_app.get("/")
+    @fast_app.get("/", tags=["root"])
     async def index():
         return {'message': 'Welcome to iBridge Integration REST API'}
 
     @fast_app.exception_handler(AuthJWTException)
-    def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+    def auth_jwt_exception_handler(request: Request, exc: AuthJWTException):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.message}
         )
 
-    @fast_app.post('/login')
-    def login(user: User, authorize: AuthJWT = Depends()):
-        if user.username != "test" or user.password != "test":
-            raise HTTPException(status_code=401, detail="Bad username or password")
-
-        access_token = authorize.create_access_token(subject=user.username)
-        return {"access_token": access_token}
-
     fast_app = register_rest_modules(fast_app)
     return fast_app
+
+
+def _get_klass(router_name):
+    mod = None
+    components = router_name.split(".")
+    import_modules = ".".join(components[:-1])
+    try:
+        mod = __import__(import_modules)
+        for cmp in components[1:]:
+            mod = getattr(mod, cmp)
+    except Exception:
+        logging.error(traceback.format_exc())
+    return mod
+
+
+def register_rest_modules(app: FastAPI) -> FastAPI:
+    for mod_name in consts.REST_SERVICE_AVAILABLE:
+        mod = _get_klass(mod_name)
+        app.include_router(mod) if mod else None
+    return app
 
 
 app = create_app()

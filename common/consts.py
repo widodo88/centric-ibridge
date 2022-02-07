@@ -88,4 +88,7 @@ TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTr
 
 SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
                       ["core.reststarter.RESTServerStarter", False]]
+
 BRIDGE_SERVICE = SERVICES_AVAILABLE[0][0]
+
+REST_SERVICE_AVAILABLE = ["restsvc.users.router.router"]
