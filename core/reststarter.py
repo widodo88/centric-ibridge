@@ -36,51 +36,49 @@ class RESTServerStarter(BaseAppServer):
         
     def do_start(self):
         # only enable this on production mode in linux
-        if (not self.is_production_mode()) or (not oshelper.is_linux()):
-            return
-        pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
-        os.makedirs(os.path.dirname(pid_file), exist_ok=True)
-        run_args = [
-            'gunicorn',
-            '-w', '4',
-            '-k', 'uvicorn.workers.UvicornWorker',
-            '-b', '0.0.0.0:8080',
-            '-n', 'centric-rest-ibridge',
-            '-p', str(pid_file),
-            '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
-        ]
-        run_args += ["""irest:create_app()"""]
-        gunicorn_master_proc = None
+        if self.is_production_mode() and oshelper.is_linux():
+            pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
+            os.makedirs(os.path.dirname(pid_file), exist_ok=True)
+            run_args = [
+                'gunicorn',
+                '-w', '4',
+                '-k', 'uvicorn.workers.UvicornWorker',
+                '-b', '0.0.0.0:8080',
+                '-n', 'centric-rest-ibridge',
+                '-p', str(pid_file),
+                '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
+            ]
+            run_args += ["""irest:create_app()"""]
+            gunicorn_master_proc = None
 
-        def kill_proc(dummy_signum, dummy_frame):
-            gunicorn_master_proc.terminate()
-            gunicorn_master_proc.wait()
-            sys.exit(0)
+            def kill_proc(dummy_signum, dummy_frame):
+                gunicorn_master_proc.terminate()
+                gunicorn_master_proc.wait()
+                sys.exit(0)
 
-        gunicorn_master_proc = subprocess.Popen(run_args)
+            gunicorn_master_proc = subprocess.Popen(run_args)
 
-        signal.signal(signal.SIGINT, kill_proc)
-        signal.signal(signal.SIGTERM, kill_proc)
+            signal.signal(signal.SIGINT, kill_proc)
+            signal.signal(signal.SIGTERM, kill_proc)
 
         restutils.set_stopped(False)
         super(RESTServerStarter, self).do_start()
 
     def do_stop(self):
         # only enable this on production mode in linux
-        if (not self.is_production_mode()) or (not oshelper.is_linux()):
-            return
-        pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
-        while True:
-            try:
-                with open(pid_file) as f:
-                    gunicorn_master_proc_pid = int(f.read())
-                    break
-            except IOError:
-                logging.debug("Waiting for gunicorn's pid file to be created.")
-                time.sleep(0.1)
+        if self.is_production_mode() and oshelper.is_linux():
+            pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
+            while True:
+                try:
+                    with open(pid_file) as f:
+                        gunicorn_master_proc_pid = int(f.read())
+                        break
+                except IOError:
+                    logging.debug("Waiting for gunicorn's pid file to be created.")
+                    time.sleep(0.1)
 
-        gunicorn_master_proc = psutil.Process(gunicorn_master_proc_pid)
-        gunicorn_master_proc.terminate()
+            gunicorn_master_proc = psutil.Process(gunicorn_master_proc_pid)
+            gunicorn_master_proc.terminate()
         restutils.set_stopped(True)
         super(RESTServerStarter, self).do_stop()
 
