@@ -42,7 +42,6 @@ class AbstractFactory(object):
             mod = getattr(mod, comp)
         return mod
 
-
     @staticmethod
     def create_instance(klass):
         instance = object.__new__(klass)

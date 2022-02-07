@@ -34,6 +34,9 @@ class MessageNotifier(StartableListener):
     def set_on_message_received(self, message_func=None):
         self._message = message_func
 
+    def get_on_message_received(self):
+        return self._message
+
 
 class MessageHandler(Startable):
 
@@ -53,8 +56,7 @@ class QueuePoolHandler(MessageHandler):
         self._eval_thread = threading.Thread(target=self._eval_message, daemon=True)
 
     def register_listener(self, listener):
-        if isinstance(listener, MessageNotifier):
-            listener.set_on_message_received(self.on_handle_message)
+        listener.set_on_message_received(self.on_handle_message) if isinstance(listener, MessageNotifier) else None
 
     def on_handle_message(self, obj, message):
         self._queue.put(message, block=True)
@@ -73,6 +75,3 @@ class QueuePoolHandler(MessageHandler):
             else:
                 message = self._queue.get(block=True)
                 self.handle_message(message)
-
-
-

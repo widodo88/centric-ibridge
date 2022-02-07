@@ -24,7 +24,7 @@ from core.translocal import LocalTransportHandler
 class UnixSocketTransport(LocalTransportHandler):
 
     def __init__(self, config=None, transport_index=0):
-        super(UnixSocketTransport, self).__init__(config, transport_index)
+        super(UnixSocketTransport, self).__init__(config=config, transport_index=transport_index)
         self.socket = None
         self.selector = None
 
@@ -39,7 +39,7 @@ class UnixSocketTransport(LocalTransportHandler):
             os.remove(consts.UNIX_SOCKET_FILE)
         self.socket.bind(consts.UNIX_SOCKET_FILE)
         self.socket.setblocking(False)
-        self.socket.listen(1)
+        self.socket.listen()
         self.selector.register(self.socket, selectors.EVENT_READ)
         while self.is_running():
             try:
@@ -51,15 +51,12 @@ class UnixSocketTransport(LocalTransportHandler):
                         conn.setblocking(False)
                         self.selector.register(conn, selectors.EVENT_READ)
                     else:
-                        try:
-                            fp = event_socket.makefile('r', buffering=1024)
-                            message = fp.readline()
-                            fp.close()
-                            should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
-                            if not should_terminate:
-                                self.handle_message(message)
-                        finally:
-                            event_socket.close()
+                        fp = event_socket.makefile('r', buffering=1024)
+                        message = fp.readline()
+                        fp.close()
+                        should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
+                        if not should_terminate:
+                            self.handle_message(message)
             except Exception as ex:
                 logging.error(ex)
             finally:
@@ -72,20 +69,28 @@ class UnixSocketTransport(LocalTransportHandler):
     def notify_server(self, message_obj):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.connect(consts.UNIX_SOCKET_FILE)
-        fd = client.makefile(mode="w")
-        fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
-        fd.flush()
-        fd.close()
-        client.close()
+        try:
+            fd = client.makefile(mode="w")
+            try:
+                fd.write("{0}\n".format(message_obj.encode().decode("utf-8")))
+                fd.flush()
+            finally:
+                fd.close()
+        finally:
+            client.close()
 
     def send_shutdown_signal(self):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.connect(consts.UNIX_SOCKET_FILE)
-        fd = client.makefile(mode="w")
-        fd.write("shut\n")
-        fd.flush()
-        fd.close()
-        client.close()
+        try:
+            fd = client.makefile(mode="w")
+            try:
+                fd.write("shut\n")
+                fd.flush()
+            finally:
+                fd.close()
+        finally:
+            client.close()
 
 
 

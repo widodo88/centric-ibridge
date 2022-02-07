@@ -12,3 +12,18 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import logging
+from core.baseappsrv import BaseAppServer
+
+
+class RESTServerStarter(BaseAppServer):
+
+    def __init__(self, config=None, standalone: bool = True):
+        super(RESTServerStarter, self).__init__(config=config, standalone=standalone)
+
+    def do_configure(self):
+        super(RESTServerStarter, self).do_configure()
+
+    def handle_stop_event(self, obj):
+        self.stop()
+        logging.info("Shutting down REST Service")

@@ -9,35 +9,40 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
+# This module is part of Centric PLM Integration Bridge and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+
+import amqp
 import logging
+from common import consts
 from core.transhandler import TransportHandler
-from amqplib import client_0_8 as amqp
 
 
-class amqpTransport(TransportHandler):
-    def __init__(self):
+class AmqpTransport(TransportHandler):
+    def __init__(self, config=None, transport_index=0):
+        super(AmqpTransport, self).__init__(config=config, transport_index=transport_index)
         self.amqp_config = None
         self.host = None
         self.durable = True
         self.auto_delete = False
         # fanout, direct, topic
         self.type = "direct"
-        super(amqpTransport, self).__init__()
+        self._my_exchange = None
 
     def do_configure(self):
-        super(amqpTransport, self).do_configure()
-        if not self.amqp_config:
-            self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
-            self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
-                                               password=self.get_transport_password())
+        super(AmqpTransport, self).do_configure()
+        self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
+        self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
+        self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
+                                           password=self.get_transport_password())
 
     def do_listen(self):
         client = self.amqp_config.channel(self.get_transport_channel())
-        client.queue_declare(queue=self.get_transport_clientid(), durable=self.durable, auto_delete=self.auto_delete)
+        client.queue_declare(queue=self.get_transport_client_id(), durable=self.durable, auto_delete=self.auto_delete)
         client.exchange_declare(exchange=self.get_client_exchange(), type=self.type, durable=self.durable,
                                 auto_delete=self.auto_delete)
-        client.queue_bind(queue=self.get_transport_clientid(), exchange=self.get_client_exchange())
-        client.basic_consume(queue=self.get_transport_clientid(), no_ack=True, callback=self.handle_message)
+        client.queue_bind(queue=self.get_transport_client_id(), exchange=self.get_client_exchange())
+        client.basic_consume(queue=self.get_transport_client_id(), no_ack=True, callback=self.handle_message)
 
         try:
             try:
@@ -50,3 +55,6 @@ class amqpTransport(TransportHandler):
                 raise
         finally:
             self.amqp_config.close()
+
+    def get_client_exchange(self):
+        return self._my_exchange

@@ -18,8 +18,8 @@ from core.objfactory import AbstractFactory
 
 class TransportFactory(AbstractFactory):
 
-    def __init__(self, config):
-        super(TransportFactory, self).__init__(config)
+    def __init__(self, config=None):
+        super(TransportFactory, self).__init__(config=config)
         self.dictionary = {}
 
     def do_configure(self):
@@ -61,10 +61,3 @@ class TransportPreparer(object):
                 instance = factory.create_object(protocol, index=index)
                 instance.add_listener(listener)
                 container.add_object(instance)
-
-
-
-
-
-
-

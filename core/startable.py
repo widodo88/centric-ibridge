@@ -41,38 +41,87 @@ class StartableListener(object):
 
     def on_starting(self, obj):
         """Facilitating to notify observer upon starting event"""
-        if self._starting:
-            self._starting(obj)
+        self._starting(obj) if self._starting else None
 
     def on_started(self, obj):
         """Facilitating to notify observer upon started event"""
-        if self._started:
-            self._started(obj)
+        self._started(obj) if self._started else None
 
     def on_failure(self, obj, exc):
         """Facilitating to notify observer upon failure event"""
-        if self._failure:
-            self._failure(obj, exc)
+        self._failure(obj, exc) if self._failure else None
 
     def on_stopping(self, obj):
         """Facilitating to notify observer upon stopping event"""
-        if self._stopping:
-            self._stopping(obj)
+        self._stopping(obj) if self._stopping else None
 
     def on_stopped(self, obj):
         """Facilitating to notify observer upon stopped event"""
-        if self._stopped:
-            self._stopped(obj)
+        self._stopped(obj) if self._stopped else None
 
     def on_configuring(self, obj, config):
         """Facilitating to notify observer upon configuring event"""
-        if self._configuring:
-            self._configuring(obj, config)
+        self._configuring(obj, config) if self._configuring else None
 
     def on_configured(self, obj, config):
         """Facilitating to notify observer upon configured event"""
-        if self._configured:
-            self._configured(obj, config)
+        self._configured(obj, config) if self._configured else None
+
+    def get_on_starting(self):
+        """Get on Starting Event handler"""
+        return self._starting
+
+    def set_on_starting(self, starting_func):
+        """Set on Starting Event handler"""
+        self._starting = starting_func
+
+    def get_on_started(self):
+        """Get on Started Event handler"""
+        return self._started
+
+    def set_on_started(self, started_func):
+        """Set on Started Event handler"""
+        self._started = started_func
+
+    def get_on_stopping(self):
+        """Get on Stopping Event handler"""
+        return self._stopping
+
+    def set_on_stopping(self, stopping_func):
+        """Set on Stopping Event handler"""
+        self._stopping = stopping_func
+
+    def get_on_stopped(self):
+        """Get on Stopped Event handler"""
+        return self._stopped
+
+    def set_on_stopped(self, stopped_func):
+        """Set on Started Event handler"""
+        self._stopped = stopped_func
+
+    def get_on_configuring(self):
+        """Get on Configuring Event handler"""
+        return self._configuring
+
+    def set_on_configuring(self, configuring_func):
+        """Set on Configuring Event handler"""
+        self._configuring = configuring_func
+
+    def get_on_configured(self):
+        """Get on Configured Event handler"""
+        return self._configured
+
+    def set_on_configured(self, configured_func):
+        """Set on Configured Event handler"""
+        self._configured = configured_func
+
+    def get_on_failure(self):
+        """Get on Failure Event handler"""
+        return self._failure
+
+    def set_on_failure(self, failure_func):
+        """Set on Failure Event handler"""
+        self._failure = failure_func
 
 
 class Startable(object):
@@ -156,15 +205,11 @@ class Startable(object):
 
     def add_listener(self, listener):
         """Add listener to this observable component"""
-        if not isinstance(listener, StartableListener):
-            return
-        self._listeners.append(listener)
+        self._listeners.append(listener) if isinstance(listener, StartableListener) else None
 
     def remove_listener(self, listener):
         """Remove listener from this observable component"""
-        if not isinstance(listener, StartableListener):
-            return
-        if listener in self._listeners:
+        if isinstance(listener, StartableListener) and (listener in self._listeners):
             obj_pos = self._listeners.index(listener)
             self._listeners.pop(obj_pos)
 
@@ -186,8 +231,7 @@ class Startable(object):
 
     def start(self):
         """Perform Starting this component"""
-        if self._configured == Startable.UNCONFIGURED:
-            self.configure()
+        self.configure() if self._configured == Startable.UNCONFIGURED else None
         self._lock.acquire(blocking=True)
         try:
             if (not self._enabled) or (self._state in [Startable.STARTED, Startable.STARTING]):
@@ -267,7 +311,7 @@ class Startable(object):
 class StartableManager(Startable):
 
     def __init__(self, config=None):
-        super(StartableManager, self).__init__(config)
+        super(StartableManager, self).__init__(config=config)
         self._startable_objects = list()
         self._lock = RLock()
 
