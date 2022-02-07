@@ -20,7 +20,7 @@ SHUTDOWN_ADDR = "shutdown.addr"
 SHUTDOWN_PORT = "shutdown.port"
 
 KRAKEN_REST_BASE_URL = "kraken.rest.base.url"
-CENTRIC_REST_BASE_URL = "centric.rest.base.url"
+C8_REST_BASE_URL = "c8.rest.base.url"
 
 BRIDGE_ENABLED = "bridge.enabled"
 RESTAPI_ENABLED = "restapi.enabled"
