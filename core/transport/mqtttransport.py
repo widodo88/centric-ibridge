@@ -34,7 +34,7 @@ class MqttTransport(TransportHandler):
 
     def on_message(self, client, usrdata, msg):
         if msg:
-            self.handle_message(msg.payload.decode())
+            self.handle_message(bytes(msg.payload.decode(), 'utf-8'))
 
     def on_subscribe(self, client, obj, mid, granted_qos):
         self.subscribed = True
