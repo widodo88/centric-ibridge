@@ -78,6 +78,8 @@ UNIX_SOCKET_FILE = "/tmp/ibridge.sock"
 LOCAL_TRANSPORT_ADDR = "127.0.0.1"
 LOCAL_TRANSPORT_PORT = 8888
 
+MODULE_CONFIG_FILE = "modules.properties"
+
 TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTransport",
                   MQ_TRANSPORT_LOCAL: "core.transport.localtransport.LocalhostTransport",
                   MQ_TRANSPORT_STOMP: "core.transport.stomptransport.StompTransport",

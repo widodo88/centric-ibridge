@@ -16,6 +16,7 @@
 
 import logging
 from common import consts
+from common import modconfig
 from core.objfactory import AbstractFactory
 from core.startable import Startable, StartableManager
 from core.msgobject import MessageFactory, MessageEvent, MessageCommand
@@ -33,12 +34,13 @@ class DummyClass(object):
 
 class BaseExecutor(Startable):
 
-    def __init__(self, config=None, module=None, workers=4):
+    def __init__(self, config=None, module_config=None, module=None, workers=4):
         super(BaseExecutor, self).__init__(config=config)
         self._collection = dict()
         self._max_processes = workers
         self._pool = None
         self._module = module
+        self._module_config = module_config
         self._props = None
 
     def do_configure(self):
@@ -64,6 +66,12 @@ class BaseExecutor(Startable):
 
     def execute_module(self, message_obj):
         pass
+
+    def set_module_configuration(self, module_config):
+        self._module_config = module_config
+
+    def get_module_configuration(self):
+        return self._module_config
 
     def _get_klass_from_cache(self, class_name):
         return None
@@ -100,6 +108,7 @@ class BaseExecutor(Startable):
         parent = self._collection[klass.__name__]
         module = object.__new__(klass)
         module.__init__()
+        module.set_module_configuration(self.get_module_configuration())
         module.set_parent(parent)
         module.do_configure()
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
@@ -242,6 +251,7 @@ class BaseExecutionManager(StartableManager):
     def __init__(self, config):
         super(BaseExecutionManager, self).__init__(config=config)
         self._executor_factory = ExecutorFactory(config=config)
+        self._module_config = None
 
     def get_valid_module(self, message_obj):
         object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]
@@ -251,7 +261,10 @@ class BaseExecutionManager(StartableManager):
         return None
 
     def _register_module_object(self, message_obj):
+        if not self._module_config:
+            self._module_config = modconfig.get_configuration()
         module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
+        module_object.set_module_configuration(self._module_config)
         self.add_object(module_object if module_object else None)
         return module_object
 
