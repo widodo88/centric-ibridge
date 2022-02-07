@@ -26,6 +26,7 @@ RESTAPI_ENABLED = "restapi.enabled"
 LOG_LEVEL = "log.level"
 LOG_FORMAT = "log.format"
 LOG_FILE = "log.file"
+RESTAPI_LOG_FILE = "restapi.log.file"
 
 MQ_TRANSPORT_COUNT = "mq.transport.count"
 MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
@@ -59,6 +60,7 @@ DEFAULT_EVENT_FILE = "events.properties"
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(message)s"
 DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_FILE = "{0}/log/ibridge.log".format(DEFAULT_SCRIPT_PATH)
+DEFAULT_RESTAPI_LOG_FILE = "{0}/log/irest.log".format(DEFAULT_SCRIPT_PATH)
 DEFAULT_LOG_LEVEL = log_level[LOG_LEVEL_INFO]
 
 DEFAULT_SHUTDOWN_ADDR = "127.0.0.1"

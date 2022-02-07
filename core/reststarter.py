@@ -13,6 +13,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
+from utils import restutils
 from core.baseappsrv import BaseAppServer
 
 
@@ -23,6 +24,14 @@ class RESTServerStarter(BaseAppServer):
 
     def do_configure(self):
         super(RESTServerStarter, self).do_configure()
+        
+    def do_start(self):
+        restutils.set_stopped(False)
+        super(RESTServerStarter, self).do_start()
+
+    def do_stop(self):
+        restutils.set_stopped(True)
+        super(RESTServerStarter, self).do_stop()
 
     def handle_stop_event(self, obj):
         self.stop()
