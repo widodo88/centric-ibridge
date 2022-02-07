@@ -28,6 +28,7 @@ from logging.handlers import TimedRotatingFileHandler
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi import FastAPI, Request, Depends, HTTPException
 from restsvc.users.models.model import User
+from restsvc import register_rest_modules
 from common import restapikey
 
 
@@ -70,13 +71,14 @@ def create_app():
         )
 
     @fast_app.post('/login')
-    def login(user: User, Authorize: AuthJWT = Depends()):
+    def login(user: User, authorize: AuthJWT = Depends()):
         if user.username != "test" or user.password != "test":
             raise HTTPException(status_code=401, detail="Bad username or password")
 
-        access_token = Authorize.create_access_token(subject=user.username)
+        access_token = authorize.create_access_token(subject=user.username)
         return {"access_token": access_token}
 
+    fast_app = register_rest_modules(fast_app)
     return fast_app
 
 
