@@ -20,7 +20,7 @@ SHUTDOWN_ADDR = "shutdown.addr"
 SHUTDOWN_PORT = "shutdown.port"
 
 KRAKEN_REST_BASE_URL = "kraken.rest.base.url"
-CENTRIC_REST_BASE_URL = "centric.rest.base.url"
+C8_REST_BASE_URL = "c8.rest.base.url"
 
 BRIDGE_ENABLED = "bridge.enabled"
 RESTAPI_ENABLED = "restapi.enabled"
@@ -77,6 +77,8 @@ MQ_TRANSPORT_LOCAL = "local"
 UNIX_SOCKET_FILE = "/tmp/ibridge.sock"
 LOCAL_TRANSPORT_ADDR = "127.0.0.1"
 LOCAL_TRANSPORT_PORT = 8888
+
+MODULE_CONFIG_FILE = "modules.properties"
 
 TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTransport",
                   MQ_TRANSPORT_LOCAL: "core.transport.localtransport.LocalhostTransport",

@@ -20,10 +20,16 @@ import sys
 import uvicorn
 import logging
 from common import consts
-from fastapi import FastAPI
 from dotenv import dotenv_values
+from fastapi.responses import JSONResponse
+from fastapi_jwt_auth import AuthJWT
 from starlette.staticfiles import StaticFiles
 from logging.handlers import TimedRotatingFileHandler
+from fastapi_jwt_auth.exceptions import AuthJWTException
+from fastapi import FastAPI, Request, Depends, HTTPException
+from restsvc.users.models.model import User
+from restsvc import register_rest_modules
+from common import restapikey
 
 
 def do_configure():
@@ -52,10 +58,32 @@ def create_app():
     fast_app = FastAPI()
     fast_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static")),
                    name="static")
+
+    @fast_app.get("/")
+    async def index():
+        return {'message': 'Welcome to iBridge Integration REST API'}
+
+    @fast_app.exception_handler(AuthJWTException)
+    def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.message}
+        )
+
+    @fast_app.post('/login')
+    def login(user: User, authorize: AuthJWT = Depends()):
+        if user.username != "test" or user.password != "test":
+            raise HTTPException(status_code=401, detail="Bad username or password")
+
+        access_token = authorize.create_access_token(subject=user.username)
+        return {"access_token": access_token}
+
+    fast_app = register_rest_modules(fast_app)
     return fast_app
 
 
 app = create_app()
+
 
 if __name__ == '__main__':
     is_debug = not consts.IS_PRODUCTION_MODE

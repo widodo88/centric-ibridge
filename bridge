@@ -1,5 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/bin/sh
+"""true"
+BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
+ENV_DIR="$BASE_DIR/venv/bin"
+PYTHON="python3"
+INTERPRETER="$ENV_DIR/$PYTHON"
+exec $INTERPRETER "$0" "$@"
+exit 127
+"""
+
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
@@ -14,6 +22,14 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import sys
+import os
+import re
+from common import consts
+from ibridge import main
 
-def register_rest_modules(app: object) -> object:
-    return app
+if __name__ == '__main__':
+    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+    print(consts.DEF_SCRIPT_PATH)
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
