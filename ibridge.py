@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
@@ -21,8 +23,6 @@ from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from common import consts
 from core.baseappsrv import BaseAppServer
-from core.bridgesrv import BridgeServer
-from core.reststarter import RESTServerStarter
 from core.shutdn import ShutdownHookMonitor
 from core.msgobject import MessageEvent, MessageCommand
 
@@ -41,7 +41,6 @@ class BridgeApp(BaseAppServer):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
-        self._service_available = [[BridgeServer, False], [RESTServerStarter, False]]
         self._should_join = False
         self.parser = argparse.ArgumentParser(prog='ibridge', description='Integration Bridge Server v3.0')
 
@@ -70,6 +69,7 @@ class BridgeApp(BaseAppServer):
         command_parser.add_argument('-k', '--kwargs', help='List of parameter required', nargs="+", dest="kwargs",
                                     action=StoreDictKeyPair, metavar="key1=val1")
         command_parser.set_defaults(func=self.do_send_command)
+        super(BridgeApp, self).do_configure()
 
     def do_start(self):
         super(BridgeApp, self).do_start()
@@ -89,7 +89,8 @@ class BridgeApp(BaseAppServer):
         shutdown_hook.add_listener(self.get_transport_listener())
         return shutdown_hook
 
-    def configure_app_server(self, app_server_klass, standalone=False):
+    def configure_app_server(self, app_server_klass_name, standalone=False):
+        app_server_klass = self._get_klass(app_server_klass_name)
         if not issubclass(app_server_klass, BaseAppServer):
             return
         server_instance = object.__new__(app_server_klass)
@@ -98,7 +99,7 @@ class BridgeApp(BaseAppServer):
         return server_instance
 
     def configure_services(self):
-        service_enabled = [service for service in self._service_available if service[1]]
+        service_enabled = [service for service in consts.SERVICES_AVAILABLE if service[1]]
         for service in service_enabled:
             self.add_object(self.configure_app_server(service[0]))
 
@@ -139,7 +140,8 @@ class BridgeApp(BaseAppServer):
         message_object = MessageEvent()
         message_object.set_event(module, submodule, event)
         message_object.set_parameters(*arg, **kwarg)
-        bridgesrv = BridgeServer.get_default_instance()
+        appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
+        bridgesrv = appserver_klass.get_default_instance()
         bridgesrv.set_configuration(self.get_configuration())
         try:
             bridgesrv.notify_server(message_object)
@@ -158,7 +160,8 @@ class BridgeApp(BaseAppServer):
         message_object = MessageCommand()
         message_object.set_command(module, submodule, command)
         message_object.set_parameters(*arg, **kwarg)
-        bridgesrv = BridgeServer.get_default_instance()
+        appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
+        bridgesrv = appserver_klass.get_default_instance()
         bridgesrv.set_configuration(self.get_configuration())
         try:
             bridgesrv.notify_server(message_object)
@@ -176,18 +179,29 @@ class BridgeApp(BaseAppServer):
 
     def parse_config(self):
         config = self.get_configuration()
-        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else False
-        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else False
-        bridge_enabled = bridge_enabled if bridge_enabled else False
-        restapi_enabled = restapi_enabled if restapi_enabled else False
-        self._service_available[0][1] = bridge_enabled
-        self._service_available[1][1] = restapi_enabled
+        bridge_enabled = config[consts.BRIDGE_ENABLED] if consts.BRIDGE_ENABLED in config else "false"
+        restapi_enabled = config[consts.RESTAPI_ENABLED] if consts.RESTAPI_ENABLED in config else "false"
+        bridge_enabled = "false" if bridge_enabled is None else bridge_enabled
+        restapi_enabled = "false" if restapi_enabled is None else restapi_enabled
+        consts.SERVICES_AVAILABLE[0][1] = bridge_enabled.lower() == "true"
+        consts.SERVICES_AVAILABLE[1][1] = restapi_enabled.lower() == "true"
 
-    def is_bridge_enabled(self):
-        return self._bridge_enabled
+    @staticmethod
+    def _get_klass_module(class_name):
+        components = class_name.split(".")
+        return components, ".".join(components[:-1])
 
-    def is_restapi_enabled(self):
-        return self._restapi_enabled
+    def _get_klass(self, class_name):
+        mod = None
+        components, import_modules = self._get_klass_module(class_name)
+        try:
+            mod = __import__(import_modules)
+            for cmp in components[1:]:
+                mod = getattr(mod, cmp)
+            mod = mod if issubclass(mod, BaseAppServer) else None
+        except Exception as ex:
+            logging.error(ex)
+        return mod
 
     def handle_stop_event(self, obj):
         self.stop()
@@ -226,6 +240,6 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    consts.DEF_SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+    consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
     sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
     sys.exit(main())

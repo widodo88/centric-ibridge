@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
@@ -26,6 +28,7 @@ RESTAPI_ENABLED = "restapi.enabled"
 LOG_LEVEL = "log.level"
 LOG_FORMAT = "log.format"
 LOG_FILE = "log.file"
+RESTAPI_LOG_FILE = "restapi.log.file"
 
 MQ_TRANSPORT_COUNT = "mq.transport.count"
 MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
@@ -37,6 +40,8 @@ MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
 MQ_TRANSPORT_CLIENTID = "mq.transport.{0}.clientid"
 MQ_CLIENT_HEARTBEAT = "mq.transport.{0}.heartbeat"
 MQ_MY_EXCHANGE = "mq.transport.{0}.myexchange"
+
+PRODUCTION_MODE = "production.mode"
 
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
@@ -57,6 +62,7 @@ DEFAULT_EVENT_FILE = "events.properties"
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(message)s"
 DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_FILE = "{0}/log/ibridge.log".format(DEFAULT_SCRIPT_PATH)
+DEFAULT_RESTAPI_LOG_FILE = "{0}/log/irest.log".format(DEFAULT_SCRIPT_PATH)
 DEFAULT_LOG_LEVEL = log_level[LOG_LEVEL_INFO]
 
 DEFAULT_SHUTDOWN_ADDR = "127.0.0.1"
@@ -77,3 +83,7 @@ TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTr
                   MQ_TRANSPORT_STOMP: "core.transport.stomptransport.StompTransport",
                   MQ_TRANSPORT_MQTT: "core.transport.mqtttransport.MqttTransport",
                   MQ_TRANSPORT_AMQP: "core.transport.amqptransport.AmqpTransport"}
+
+SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
+                      ["core.reststarter.RESTServerStarter", False]]
+BRIDGE_SERVICE = SERVICES_AVAILABLE[0][0]

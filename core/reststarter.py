@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
@@ -12,7 +14,15 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import os
+import signal
+import subprocess
 import logging
+import sys
+import time
+import psutil
+from common import consts
+from utils import restutils
 from core.baseappsrv import BaseAppServer
 
 
@@ -23,6 +33,50 @@ class RESTServerStarter(BaseAppServer):
 
     def do_configure(self):
         super(RESTServerStarter, self).do_configure()
+        
+    def do_start(self):
+        pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
+        os.makedirs(os.path.dirname(pid_file), exist_ok=True)
+        run_args = [
+            'gunicorn',
+            '-w', '4',
+            '-k', 'uvicorn.workers.UvicornWorker',
+            '-b', '0.0.0.0:8080',
+            '-n', 'centric-rest-ibridge',
+            '-p', str(pid_file),
+            '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
+        ]
+        run_args += ["""irest:create_app()"""]
+        gunicorn_master_proc = None
+
+        def kill_proc(dummy_signum, dummy_frame):
+            gunicorn_master_proc.terminate()
+            gunicorn_master_proc.wait()
+            sys.exit(0)
+
+        gunicorn_master_proc = subprocess.Popen(run_args)
+
+        signal.signal(signal.SIGINT, kill_proc)
+        signal.signal(signal.SIGTERM, kill_proc)
+
+        restutils.set_stopped(False)
+        super(RESTServerStarter, self).do_start()
+
+    def do_stop(self):
+        pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
+        while True:
+            try:
+                with open(pid_file) as f:
+                    gunicorn_master_proc_pid = int(f.read())
+                    break
+            except IOError:
+                logging.debug("Waiting for gunicorn's pid file to be created.")
+                time.sleep(0.1)
+
+        gunicorn_master_proc = psutil.Process(gunicorn_master_proc_pid)
+        gunicorn_master_proc.terminate()
+        restutils.set_stopped(True)
+        super(RESTServerStarter, self).do_stop()
 
     def handle_stop_event(self, obj):
         self.stop()

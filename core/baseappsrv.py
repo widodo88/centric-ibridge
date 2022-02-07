@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
@@ -12,6 +14,7 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+from common import consts
 from core.startable import LifeCycleManager
 from core.transhandler import TransportMessageNotifier
 
@@ -21,7 +24,12 @@ class BaseAppServer(LifeCycleManager):
     def __init__(self, config=None, standalone=False):
         super(BaseAppServer, self).__init__(config=config)
         self._transport_listener = None
+        self._production_mode = None
         self._standalone = standalone
+
+    def do_configure(self):
+        self._lazy_configure() if self._production_mode is None else None
+        super(BaseAppServer, self).do_configure()
 
     def handle_stop_event(self, obj):
         pass
@@ -50,3 +58,14 @@ class BaseAppServer(LifeCycleManager):
     @standalone.setter
     def standalone(self, value):
         self._standalone = value
+
+    def is_production_mode(self):
+        self._lazy_configure() if self._production_mode is None else None
+        return self._production_mode
+
+    def _lazy_configure(self):
+        config = self.get_configuration()
+        mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
+        mode = "false" if mode is None else mode
+        self._production_mode = mode.lower() == "true"
+

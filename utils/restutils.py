@@ -14,19 +14,39 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import os
-import platform
+import logging
+from threading import RLock
+
+_IS_RUNNING = False
+_LOCK = RLock()
 
 
-def extract_class_name(class_name):
+def _get_klass_module(class_name):
     components = class_name.split(".")
     return components, ".".join(components[:-1])
 
 
-def is_windows():
-    return os.name == "nt"
+def get_klass(class_name):
+    mod = None
+    components, import_modules = _get_klass_module(class_name)
+    try:
+        mod = __import__(import_modules)
+        for cmp in components[1:]:
+            mod = getattr(mod, cmp)
+    except Exception as ex:
+        logging.error(ex)
+    return mod
 
 
-def is_linux():
-    return (os.name == "posix") and (platform.system() == "Linux")
+def is_running() -> bool:
+    return _IS_RUNNING
 
+
+def set_stopped(value: bool) -> None:
+    global _IS_RUNNING
+    global _LOCK
+    _LOCK.acquire(blocking=True)
+    try:
+        _IS_RUNNING = not value
+    finally:
+        _LOCK.release()
