@@ -22,7 +22,7 @@ import sys
 import time
 import psutil
 from common import consts
-from utils import restutils
+from utils import restutils, oshelper
 from core.baseappsrv import BaseAppServer
 
 
@@ -35,6 +35,9 @@ class RESTServerStarter(BaseAppServer):
         super(RESTServerStarter, self).do_configure()
         
     def do_start(self):
+        # only enable this on production mode in linux
+        if (not self.is_production_mode()) or (not oshelper.is_linux()):
+            return
         pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
         os.makedirs(os.path.dirname(pid_file), exist_ok=True)
         run_args = [
@@ -63,6 +66,9 @@ class RESTServerStarter(BaseAppServer):
         super(RESTServerStarter, self).do_start()
 
     def do_stop(self):
+        # only enable this on production mode in linux
+        if (not self.is_production_mode()) or (not oshelper.is_linux()):
+            return
         pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
         while True:
             try:
