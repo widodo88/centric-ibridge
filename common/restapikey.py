@@ -20,7 +20,8 @@ from fastapi_jwt_auth import AuthJWT
 
 class JWTSettings(BaseModel):
 
-    authjwt_secret_key = "qwelmckjadlJK12KL-BUSANAGROUP"
+    # change this on production
+    authjwt_secret_key = "qwelmckjadlJK12KL-BUSANAGROUP-EXAMPLE"
 
 
 @AuthJWT.load_config
