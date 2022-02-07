@@ -24,6 +24,7 @@ import psutil
 from common import consts
 from utils import restutils, oshelper
 from core.baseappsrv import BaseAppServer
+import traceback
 
 
 class RESTServerStarter(BaseAppServer):
@@ -40,7 +41,8 @@ class RESTServerStarter(BaseAppServer):
             pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
             os.makedirs(os.path.dirname(pid_file), exist_ok=True)
             run_args = [
-                'gunicorn',
+                consts.DEFAULT_SCRIPT_PATH + '/' +
+                'websvcsvr',
                 '-w', '4',
                 '-k', 'uvicorn.workers.UvicornWorker',
                 '-b', '0.0.0.0:8080',
@@ -56,10 +58,13 @@ class RESTServerStarter(BaseAppServer):
                 gunicorn_master_proc.wait()
                 sys.exit(0)
 
-            gunicorn_master_proc = subprocess.Popen(run_args)
+            try:
+                gunicorn_master_proc = subprocess.Popen(run_args)
 
-            signal.signal(signal.SIGINT, kill_proc)
-            signal.signal(signal.SIGTERM, kill_proc)
+                signal.signal(signal.SIGINT, kill_proc)
+                signal.signal(signal.SIGTERM, kill_proc)
+            except Exception as ex:
+                logging.error(traceback.format_exc())
 
         restutils.set_stopped(False)
         super(RESTServerStarter, self).do_start()

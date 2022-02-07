@@ -7,7 +7,7 @@ INTERPRETER="$ENV_DIR/$PYTHON"
 exec $INTERPRETER "$0" "$@"
 exit 127
 """
-
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Busana Apparel Group. All rights reserved.
 #
