@@ -17,6 +17,7 @@
 
 import json
 import base64
+import time
 from common import consts
 from utils.basehttpclient import BaseHttpClient, JWT_AUTH
 
@@ -60,14 +61,33 @@ class C8WebClient(BaseHttpClient):
     def create_resource(self, resource):
         return C8WebResource(self, resource)
 
-    def update_cookies(self, resp):
-        super(C8WebClient, self).update_cookies(resp)
+    def _update_security_token(self):
         token = self.get_token()
-        cookies = self.get_parent()
-        cookies = cookies.cookies if cookies else cookies
+        parent = self.get_parent()
+        cookies = parent.cookies if parent else None
         cookies = cookies if cookies else self.get_cookies()
         token = cookies[C8_TOKEN_NAME] if C8_TOKEN_NAME in cookies else token
         self.set_token(token)
+
+    def update_cookies(self, resp):
+        super(C8WebClient, self).update_cookies(resp)
+        self._update_security_token()
+
+    def update_login_info(self, resp):
+        parent = self.get_parent()
+        if not parent:
+            return
+        parent.last_c8login = time.time()
+        self.update_cookies(resp)
+
+    def login_expired(self):
+        parent = self.get_parent()
+        if not parent or not hasattr(parent, "last_c8login"):
+            return True
+        # ensure last login < 30 minutes
+        elapsed_time = time.time() - parent.last_c8login
+        self._update_security_token()
+        return elapsed_time > 1800
 
     def do_get(self, resource, **kwargs):
         return self.get(resource, **kwargs)
