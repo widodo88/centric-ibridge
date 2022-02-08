@@ -26,13 +26,13 @@ KRAKEN_ZBASIC = 4
 JWT_AUTH = 5
 
 
-class AbstractRestService(object):
+class BaseHttpClient(object):
 
     def __init__(self, config=None, host_url=None, username=None, password=None, secret_token=None,
                  auth_type=None, parent=None):
         self._config = config
         self._host_url = host_url
-        self._auth_type = BASIC_AUTH if auth_type is None else auth_type
+        self._auth_type = NO_AUTH if auth_type is None else auth_type
         self._user = username
         self._passwd = password
         self._cookies = {}
@@ -45,6 +45,9 @@ class AbstractRestService(object):
 
     def set_token(self, secret_token):
         self._token = secret_token
+
+    def get_token(self):
+        return self._token
 
     def get_auth(self):
         if self._auth_type == BASIC_AUTH:
@@ -62,37 +65,40 @@ class AbstractRestService(object):
     def _bind_url(self, resource):
         return "{0}/{1}".format(self._host_url, resource)
 
-    def get(self, resource, **kwargs):
-        url = self._bind_url(resource)
-        cookies = self._cookies if not self._parent else self._parent.cookies
-        resp = requests.get(url, params=kwargs, auth=self.get_auth(), cookies=cookies)
+    def update_cookies(self, resp):
         cookies = self._parent if self._parent else self._cookies
         cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
+
+    def get(self, resource, **kwargs):
+        url = self._bind_url(resource)
+        cookies = self._parent if self._parent else self._cookies
+        resp = requests.get(url, params=kwargs, auth=self.get_auth(), cookies=cookies)
+        self.update_cookies(resp)
         return resp
 
     def post(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._cookies if not self._parent else self._parent.cookies
-        resp = requests.post(url, data, json_data, params=kwargs, auth=self.get_auth(), cookies=cookies)
         cookies = self._parent if self._parent else self._cookies
-        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
+        resp = requests.post(url, data, json_data, params=kwargs, auth=self.get_auth(), cookies=cookies)
+        self.update_cookies(resp)
         return resp
 
     def head(self, resource, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._cookies if not self._parent else self._parent.cookies
-        resp = requests.head(url, **kwargs, auth=self.get_auth(), cookies=cookies)
         cookies = self._parent if self._parent else self._cookies
-        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
+        resp = requests.head(url, **kwargs, auth=self.get_auth(), cookies=cookies)
+        self.update_cookies(resp)
         return resp
 
     def put(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._cookies if not self._parent else self._parent.cookies
-        resp = requests.put(url, data, json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
         cookies = self._parent if self._parent else self._cookies
-        cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
+        resp = requests.put(url, data, json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
+        self.update_cookies(resp)
         return resp
+
+    def get_parent(self):
+        return self._parent
 
     def get_cookies(self):
         return self._cookies
