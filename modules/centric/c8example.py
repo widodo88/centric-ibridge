@@ -40,14 +40,16 @@ class C8Example(CommandProcessor):
         password = config[consts.C8_REST_PASSWORD] if consts.C8_REST_PASSWORD in config else None
         if not base_url or not username or not password:
             return
+        self._c8rest_service = C8WebClient(config=config, parent=self.get_parent())
         try:
+            if not self._c8rest_service.login_expired():
+                return
             http_login = HttpClient(base_url=base_url)
             login_info = {"username": username,
                           "password": password}
             result = http_login.post("session", json_data=login_info)
             if result.status_code == 200:
-                self._c8rest_service = C8WebClient(config=config, parent=self.get_parent())
-                self._c8rest_service.update_cookies(result)
+                self._c8rest_service.update_login_info(result)
             else:
                 logging.error("Failed to login to Centric API Service with error code {0}".format(result.status_code))
 
