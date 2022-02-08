@@ -18,10 +18,12 @@
 import json
 import base64
 from common import consts
-from utils.absrest import AbstractRestService, JWT_AUTH
+from utils.basehttpclient import BaseHttpClient, JWT_AUTH
+
+C8_TOKEN_NAME = "SecurityTokenURL"
 
 
-class C8RESTResource(object):
+class C8WebResource(object):
     def __init__(self, service, resource: str):
         self._service = service
         self._resource = resource
@@ -44,7 +46,7 @@ class C8RESTResource(object):
         return json.loads(msg_bytes.decode("utf-8"))
 
 
-class C8RESTService(AbstractRestService):
+class C8WebClient(BaseHttpClient):
 
     def __init__(self, config=None, host_url=None, secret_token=None, auth_type=None, parent=None):
         auth_type = JWT_AUTH if auth_type is None else auth_type
@@ -52,15 +54,23 @@ class C8RESTService(AbstractRestService):
             host_url = config[consts.C8_REST_BASE_URL]
         if parent and not hasattr(parent, 'cookies'):
             setattr(parent, 'cookies', {})
-        super(C8RESTService, self).__init__(config=config, host_url=host_url, secret_token=secret_token,
-                                            auth_type=auth_type, parent=parent)
+        super(C8WebClient, self).__init__(config=config, host_url=host_url, secret_token=secret_token,
+                                          auth_type=auth_type, parent=parent)
 
     def create_resource(self, resource):
-        return C8RESTResource(self, resource)
+        return C8WebResource(self, resource)
 
     @staticmethod
     def _resource_url(module, command):
         return "{0}/{1}".format(module, command)
+
+    def update_cookies(self, resp):
+        super(C8WebClient, self).update_cookies(resp)
+        token = self.get_token()
+        cookies = self.get_parent()
+        cookies = cookies if cookies else self.get_cookies()
+        token = cookies[C8_TOKEN_NAME] if C8_TOKEN_NAME in cookies else token
+        self.set_token(token)
 
     def do_get(self, module, command, **kwargs):
         resource = self._resource_url(module, command)

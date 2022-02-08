@@ -15,10 +15,10 @@
 import json
 import base64
 from common import consts
-from utils.absrest import AbstractRestService, KRAKEN_ZBASIC
+from utils.basehttpclient import BaseHttpClient, KRAKEN_ZBASIC
 
 
-class RESTCommand(object):
+class KRWebCommand(object):
 
     def __init__(self, module, command):
         self._module = module
@@ -42,14 +42,14 @@ class RESTCommand(object):
         return json.loads(msg_bytes.decode("utf-8"))
 
 
-class RESTModule(object):
+class KRWebModule(object):
 
     def __init__(self, service, module_name: str):
         self._service = service
         self._module_name = module_name
 
     def create_command(self, command):
-        return RESTCommand(self, command)
+        return KRWebCommand(self, command)
 
     def get(self, command, **kwargs):
         return self._service.do_get(self._module_name, command, **kwargs)
@@ -64,7 +64,7 @@ class RESTModule(object):
         return self._service.do_put(self._module_name, command, data, json_data, **kwargs)
 
 
-class KRESTService(AbstractRestService):
+class KRWebClient(BaseHttpClient):
 
     def __init__(self, config=None, host_url=None, username=None, password=None, auth_type=None, parent=None):
         auth_type = KRAKEN_ZBASIC if auth_type is None else auth_type
@@ -72,11 +72,11 @@ class KRESTService(AbstractRestService):
             host_url = config[consts.KRAKEN_REST_BASE_URL]
         if parent and not hasattr(parent, 'cookies'):
             setattr(parent, 'cookies', {})
-        super(KRESTService, self).__init__(config=config, host_url=host_url, username=username, password=password,
+        super(KRWebClient, self).__init__(config=config, host_url=host_url, username=username, password=password,
                                            auth_type=auth_type, parent=parent)
 
     def create_module(self, module):
-        return RESTModule(self, module)
+        return KRWebModule(self, module)
 
     @staticmethod
     def _resource_url(module, command):
