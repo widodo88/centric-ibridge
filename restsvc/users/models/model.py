@@ -14,9 +14,32 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
+from fastapi_users import models
+from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
+from restsvc.users.dbengine import Base, get_async_session
 
 
-class User(BaseModel):
-    username: str
-    password: str
+class User(models.BaseUser):
+    pass
+
+
+class UserCreate(models.BaseUserCreate):
+    pass
+
+
+class UserUpdate(models.BaseUserUpdate):
+    pass
+
+
+class UserDB(User, models.BaseUserDB):
+    pass
+
+
+class UserTable(Base, SQLAlchemyBaseUserTable):
+    pass
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(UserDB, session, UserTable)

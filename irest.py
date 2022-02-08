@@ -19,14 +19,13 @@ import re
 import sys
 import uvicorn
 import logging
+import traceback
 from common import consts
 from dotenv import dotenv_values
 from fastapi.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 from logging.handlers import TimedRotatingFileHandler
-from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi import FastAPI, Request, Depends, HTTPException
-from common import restapikey
 
 
 def do_configure():
@@ -60,13 +59,6 @@ def create_app():
     async def index():
         return {'message': 'Welcome to iBridge Integration REST API'}
 
-    @fast_app.exception_handler(AuthJWTException)
-    def auth_jwt_exception_handler(request: Request, exc: AuthJWTException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.message}
-        )
-
     fast_app = register_rest_modules(fast_app)
     return fast_app
 
@@ -84,11 +76,11 @@ def _get_klass(router_name):
     return mod
 
 
-def register_rest_modules(app: FastAPI) -> FastAPI:
+def register_rest_modules(fast_app: FastAPI) -> FastAPI:
     for mod_name in consts.REST_SERVICE_AVAILABLE:
         mod = _get_klass(mod_name)
-        app.include_router(mod) if mod else None
-    return app
+        fast_app.include_router(mod) if mod else None
+    return fast_app
 
 
 app = create_app()
