@@ -24,6 +24,7 @@ class BaseCommandProcessor(object):
         self.MODULE = None
         self.SUBMODULE = None
         self._parent = None
+        self._sys_config = None
         self._module_config = None
 
     def _get_module_id(self):
@@ -70,6 +71,12 @@ class BaseCommandProcessor(object):
 
     def get_module_configuration(self):
         return self._module_config
+
+    def get_configuration(self):
+        return self._sys_config
+
+    def set_configuration(self, config):
+        self._sys_config = config
 
 
 class CommandProcessor(BaseCommandProcessor):

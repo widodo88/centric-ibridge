@@ -110,6 +110,7 @@ class BaseExecutor(Startable):
         module = object.__new__(klass)
         module.__init__()
         module.set_module_configuration(self.get_module_configuration())
+        module.set_configuration(self.get_configuration())
         module.set_parent(parent)
         module.do_configure()
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
@@ -265,6 +266,7 @@ class BaseExecutionManager(StartableManager):
         if not self._module_config:
             self._module_config = modconfig.get_configuration()
         module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
+        module_object.set_configuration(self.get_configuration())
         module_object.set_module_configuration(self._module_config)
         self.add_object(module_object if module_object else None)
         return module_object
