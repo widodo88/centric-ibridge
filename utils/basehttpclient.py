@@ -38,6 +38,8 @@ class BaseHttpClient(object):
         self._cookies = {}
         self._parent = parent
         self._token = secret_token
+        if self._parent and not hasattr(self._parent, "cookies"):
+            self._parent.cookies = dict()
 
     def set_user(self, username, password):
         self._user = username
@@ -66,33 +68,33 @@ class BaseHttpClient(object):
         return "{0}/{1}".format(self._host_url, resource)
 
     def update_cookies(self, resp):
-        cookies = self._parent if self._parent else self._cookies
+        cookies = self._parent.cookies if self._parent else self._cookies
         cookies.update([(name, value) for name, value in resp.cookies.iteritems()])
 
     def get(self, resource, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._parent if self._parent else self._cookies
+        cookies = self._parent.cookies if self._parent else self._cookies
         resp = requests.get(url, params=kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)
         return resp
 
     def post(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._parent if self._parent else self._cookies
+        cookies = self._parent.cookies if self._parent else self._cookies
         resp = requests.post(url, data, json_data, params=kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)
         return resp
 
     def head(self, resource, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._parent if self._parent else self._cookies
+        cookies = self._parent.cookies if self._parent else self._cookies
         resp = requests.head(url, **kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)
         return resp
 
     def put(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
-        cookies = self._parent if self._parent else self._cookies
+        cookies = self._parent.cookies if self._parent else self._cookies
         resp = requests.put(url, data, json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)
         return resp

@@ -60,30 +60,23 @@ class C8WebClient(BaseHttpClient):
     def create_resource(self, resource):
         return C8WebResource(self, resource)
 
-    @staticmethod
-    def _resource_url(module, command):
-        return "{0}/{1}".format(module, command)
-
     def update_cookies(self, resp):
         super(C8WebClient, self).update_cookies(resp)
         token = self.get_token()
         cookies = self.get_parent()
+        cookies = cookies.cookies if cookies else cookies
         cookies = cookies if cookies else self.get_cookies()
         token = cookies[C8_TOKEN_NAME] if C8_TOKEN_NAME in cookies else token
         self.set_token(token)
 
-    def do_get(self, module, command, **kwargs):
-        resource = self._resource_url(module, command)
+    def do_get(self, resource, **kwargs):
         return self.get(resource, **kwargs)
 
-    def do_post(self, module, command, data=None, json_data=None, **kwargs):
-        resource = self._resource_url(module, command)
+    def do_post(self, resource, data=None, json_data=None, **kwargs):
         return self.post(resource, data=data, json_data=json_data, **kwargs)
 
-    def do_head(self, module, command, **kwargs):
-        resource = self._resource_url(module, command)
+    def do_head(self, resource, **kwargs):
         return self.head(resource, **kwargs)
 
-    def do_put(self, module, command, data=None, json_data=None, **kwargs):
-        resource = self._resource_url(module, command)
+    def do_put(self, resource, data=None, json_data=None, **kwargs):
         return self.post(resource, data=data, json_data=json_data, **kwargs)
