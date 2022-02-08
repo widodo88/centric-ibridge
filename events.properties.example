@@ -4,3 +4,6 @@
 [MODULE@EXAMPLE]
 HELLO_EVENT=modules.example.exevent.ExampleEvent:example_event
 
+[TASM@HREMAS]
+HREMAS_UPDATE=modules.tasm.HREmpUpdateSearchDB:update_emp_search_db
+

@@ -1,0 +1,7 @@
+
+[TASM@EMPSEARCHDB]
+BASE_MODULE = HRERPC
+KR_REST_USERNAME = <<username>>
+KR_REST_PASSWORD = <<password>>
+SOLR_URL=http://<<solr_address_port>>/solr
+SOLR_EMP_NAMESPACE=<<solr_namespace>>
