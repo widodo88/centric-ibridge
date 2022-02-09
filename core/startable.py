@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
+from core.configurable import Configurable
 from threading import RLock
 
 
@@ -126,19 +127,17 @@ class StartableListener(object):
         self._failure = failure_func
 
 
-class Startable(object):
+class Startable(Configurable):
     """An Abstract Class for generic startable component"""
 
-    FAILED, STOPPED, STARTING, STARTED, STOPPING, CONFIGURING, CONFIGURED, UNCONFIGURED = -1, 0, 1, 2, 3, 4, 5, 6
+    FAILED, STOPPED, STARTING, STARTED, STOPPING = -1, 0, 1, 2, 3
 
     def __init__(self, config=None):
+        super(Startable, self).__init__(config=config)
         """Initialize the component, configuration object is optional which could be added by set_configuration later"""
         self._state = Startable.STOPPED
-        self._configured = Startable.UNCONFIGURED
         self._enabled = True
         self._listeners = list()
-        self._lock = RLock()
-        self._configuration = config
 
     def do_start(self):
         """An abstract method to perform component start routines"""
@@ -146,10 +145,6 @@ class Startable(object):
 
     def do_stop(self):
         """An abstract method to perform component srtop routines"""
-        pass
-
-    def do_configure(self):
-        """An abstract method to perform component configuring routines"""
         pass
 
     def is_enabled(self) -> bool:
@@ -194,17 +189,6 @@ class Startable(object):
         """
         return self.is_started() or self.is_starting()
 
-    def get_configuration(self) -> dict:
-        """
-        Get the configuration object commonly rfequired upon configuring component
-        @return:
-        """
-        return self._configuration
-
-    def set_configuration(self, config):
-        """Set the configuration dictionary commonly required upon configuring this component"""
-        self._configuration = config
-
     def add_listener(self, listener):
         """Add listener to this observable component"""
         self._listeners.append(listener) if isinstance(listener, StartableListener) else None
@@ -217,24 +201,18 @@ class Startable(object):
 
     def configure(self):
         """Perform configuring this component"""
-        self._lock.acquire(blocking=True)
+        if self._state in [Startable.CONFIGURED, Startable.CONFIGURING]:
+            return
         try:
-            if (self._configured == Startable.CONFIGURED) or \
-                    (self._state in [Startable.CONFIGURED, Startable.CONFIGURING]):
-                return
-            self._set_configuring()
-            self.do_configure()
-            self._set_configured()
+            super(Startable, self).configure()
         except Exception as exc:
             self._set_failed(exc)
             raise exc
-        finally:
-            self._lock.release()
 
     def start(self):
         """Perform Starting this component"""
         self.configure() if self._configured == Startable.UNCONFIGURED else None
-        self._lock.acquire(blocking=True)
+        self.lock.acquire(blocking=True)
         try:
             if (not self._enabled) or (self._state in [Startable.STARTED, Startable.STARTING]):
                 return
@@ -246,11 +224,11 @@ class Startable(object):
             self._set_failed(exc)
             raise exc
         finally:
-            self._lock.release()
+            self.lock.release()
 
     def stop(self):
         """Perform Stopping this component"""
-        self._lock.acquire(blocking=True)
+        self.lock.acquire(blocking=True)
         try:
             if self._state in [Startable.STOPPED, Startable.STOPPING]:
                 return
@@ -262,7 +240,7 @@ class Startable(object):
             self._set_failed(exc)
             raise exc
         finally:
-            self._lock.release()
+            self.lock.release()
 
     def get_listeners(self) -> list:
         """
@@ -273,14 +251,14 @@ class Startable(object):
         return self._listeners
 
     def _set_configured(self):
+        super(Startable, self)._set_configured()
         self._state = Startable.CONFIGURED
-        self._configured = self._state
         for listener in self._listeners:
             listener.on_configured(self, self._configuration)
 
     def _set_configuring(self):
+        super(Startable, self)._set_configuring()
         self._state = Startable.CONFIGURING
-        self._configured = self._state
         for listener in self._listeners:
             listener.on_configuring(self, self._configuration)
 
@@ -315,7 +293,6 @@ class StartableManager(Startable):
     def __init__(self, config=None):
         super(StartableManager, self).__init__(config=config)
         self._startable_objects = list()
-        self._lock = RLock()
 
     def get_objects(self):
         return self._startable_objects

@@ -17,24 +17,70 @@
 import os
 import re
 import sys
-import uvicorn
 import logging
 import traceback
-from common import consts
+import uvicorn
 from dotenv import dotenv_values
-from fastapi.responses import JSONResponse
+from common import consts
+from fastapi import FastAPI, APIRouter
 from starlette.staticfiles import StaticFiles
+from core.baseappsrv import BaseAppServer
+from core.restprep import RESTModulePreparer
 from logging.handlers import TimedRotatingFileHandler
-from fastapi import FastAPI, Request, Depends, HTTPException
 
 
-def do_configure():
-    config = dotenv_values(".env")
-    mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
-    mode = "false" if mode is None else mode
-    consts.IS_PRODUCTION_MODE = mode.lower() == "true"
-    consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
-    return config
+class RestApp(BaseAppServer):
+
+    def __init__(self):
+        super(RestApp, self).__init__()
+        self.rest_app = None
+
+    def do_configure(self):
+        config = self.get_configuration()
+        mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
+        mode = "false" if mode is None else mode
+        consts.IS_PRODUCTION_MODE = mode.lower() == "true"
+        consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+        self.configure_rest_app()
+        self.register_rest_modules()
+
+    def configure_rest_app(self):
+        self.rest_app = FastAPI(title="iBridge Server")
+        self.rest_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH,
+                                                                          "resources/static")),name="static")
+
+        @self.rest_app.get("/", tags=["root"])
+        async def index():
+            return {'message': 'Welcome to iBridge Integration REST API'}
+
+    @staticmethod
+    def _get_klass(router_name):
+        mod = None
+        components = router_name.split(".")
+        import_modules = ".".join(components[:-1])
+        try:
+            mod = __import__(import_modules)
+            for cmp in components[1:]:
+                mod = getattr(mod, cmp)
+        except Exception:
+            logging.error(traceback.format_exc())
+        return mod
+
+    def register_rest_modules(self) -> FastAPI:
+        config = self.get_configuration()
+        for mod_name in consts.REST_SERVICE_AVAILABLE:
+            mod = self._get_klass(mod_name)
+            if isinstance(mod, APIRouter):
+                self.rest_app.include_router(mod)
+            elif mod and (issubclass(mod, RESTModulePreparer) or isinstance(mod, RESTModulePreparer)):
+                mod.register_api_router(config, self.rest_app)
+        return self.rest_app
+
+    def get_rest_app(self):
+        self.configure()
+        return self.rest_app
+
+    __call__ = get_rest_app
 
 
 def configure_logging(config):
@@ -49,42 +95,15 @@ def configure_logging(config):
 
 
 def create_app():
-    config = do_configure()
+    config = dotenv_values(".env")
     configure_logging(config)
-    fast_app = FastAPI(title="iBridge Server")
-    fast_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static")),
-                   name="static")
 
-    @fast_app.get("/", tags=["root"])
-    async def index():
-        return {'message': 'Welcome to iBridge Integration REST API'}
-
-    fast_app = register_rest_modules(fast_app)
-    return fast_app
-
-
-def _get_klass(router_name):
-    mod = None
-    components = router_name.split(".")
-    import_modules = ".".join(components[:-1])
-    try:
-        mod = __import__(import_modules)
-        for cmp in components[1:]:
-            mod = getattr(mod, cmp)
-    except Exception:
-        logging.error(traceback.format_exc())
-    return mod
-
-
-def register_rest_modules(fast_app: FastAPI) -> FastAPI:
-    for mod_name in consts.REST_SERVICE_AVAILABLE:
-        mod = _get_klass(mod_name)
-        fast_app.include_router(mod) if mod else None
-    return fast_app
+    rest_app_instance = RestApp.get_default_instance()
+    rest_app_instance.set_configuration(config)
+    return rest_app_instance()
 
 
 app = create_app()
-
 
 if __name__ == '__main__':
     is_debug = not consts.IS_PRODUCTION_MODE

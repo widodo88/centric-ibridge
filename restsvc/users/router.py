@@ -24,7 +24,7 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 
-from restsvc.users.models.model import User, UserCreate, UserDB, UserUpdate, get_user_db
+from restsvc.users.model import User, UserCreate, UserDB, UserUpdate, get_user_db
 
 SECRET = "SECRET"
 
