@@ -14,22 +14,27 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from fastapi_jwt_auth import AuthJWT
-from fastapi import APIRouter, Depends, HTTPException
-from restsvc.users.models.model import User
-
-# APIRouter creates path operations for user module
-router = APIRouter(
-    prefix="/users",
-    tags=["users"],
-    responses={404: {"description": "Not found"}},
-)
+from fastapi import FastAPI, Depends
+from core.restprep import RESTModulePreparer
+from restsvc.users.model import UserDB
+from restsvc.users.activeusr import current_active_user
 
 
-@router.post('/login')
-def login(user: User, authorize: AuthJWT = Depends()):
-    if user.username != "test" or user.password != "test":
-        raise HTTPException(status_code=401, detail="Bad username or password")
+class ExampleRouterPreparer(RESTModulePreparer):
 
-    access_token = authorize.create_access_token(subject=user.username)
-    return {"access_token": access_token}
+    def __init__(self):
+        super(ExampleRouterPreparer, self).__init__()
+
+    def do_configure(self):
+        super(ExampleRouterPreparer, self).do_configure()
+
+    def prepare_router(self, app: FastAPI):
+
+        @app.get("/hello")
+        async def hello_user(user: UserDB = Depends(current_active_user)):
+            return {"message": f"Hello {user.email}!"}
+
+
+
+
+

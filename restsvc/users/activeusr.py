@@ -14,9 +14,12 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from pydantic import BaseModel
+from restsvc.users.preparer import UserRouterPreparer
 
 
-class User(BaseModel):
-    username: str
-    password: str
+def get_current_active_user():
+    user_preparer = UserRouterPreparer.get_default_instance()
+    return user_preparer.current_active_user
+
+
+current_active_user = get_current_active_user()

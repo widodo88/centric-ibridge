@@ -30,6 +30,9 @@ C8_REST_PASSWORD = "c8.rest.password"
 BRIDGE_ENABLED = "bridge.enabled"
 RESTAPI_ENABLED = "restapi.enabled"
 
+RESTAPI_SECRET_KEY = "restapi.secret.key"
+RESTAPI_ADMIN_USERNAME = "restapi.admin.username"
+
 LOG_LEVEL = "log.level"
 LOG_FORMAT = "log.format"
 LOG_FILE = "log.file"
@@ -96,4 +99,6 @@ SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
 
 BRIDGE_SERVICE = SERVICES_AVAILABLE[0][0]
 
-REST_SERVICE_AVAILABLE = ["restsvc.users.router.router"]
+REST_SERVICE_AVAILABLE = ["restsvc.users.preparer.UserRouterPreparer",
+                          "restsvc.example.preparer.ExampleRouterPreparer"]
+IS_PRODUCTION_MODE = False
