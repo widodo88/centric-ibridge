@@ -34,8 +34,8 @@ class RESTModulePreparer(Configurable):
     def register_api_router(cls, config: dict, app: FastAPI) -> FastAPI:
         instance = cls.get_default_instance()
         instance.set_configuration(config)
-        instance.configure() if instance.is_configured() else None
-        return instance.prepare_router(app)
+        instance.configure() if not instance.is_configured() else None
+        instance.prepare_router(app)
 
     @classmethod
     def get_default_instance(cls):
