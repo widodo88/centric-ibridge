@@ -18,7 +18,6 @@ from threading import RLock
 
 
 class Configurable(object):
-
     CONFIGURING, CONFIGURED, UNCONFIGURED = 4, 5, 6
 
     def __init__(self, config=None):
@@ -33,7 +32,6 @@ class Configurable(object):
 
     def is_configured(self) -> bool:
         return self._configured != Configurable.UNCONFIGURED
-
 
     def get_configuration(self) -> dict:
         """
@@ -69,6 +67,3 @@ class Configurable(object):
     @property
     def lock(self):
         return self._lock
-
-
-

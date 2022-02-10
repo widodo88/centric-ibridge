@@ -109,10 +109,10 @@ class BaseExecutor(Startable):
         parent = self._collection[klass.__name__]
         module = object.__new__(klass)
         module.__init__()
-        module.set_module_configuration(self.get_module_configuration())
         module.set_configuration(self.get_configuration())
+        module.set_module_configuration(self.get_module_configuration())
         module.set_parent(parent)
-        module.do_configure()
+        module.configure()
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
         return module
 

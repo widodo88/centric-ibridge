@@ -16,15 +16,16 @@
 
 import logging
 from core import msgobject
+from core.configurable import Configurable
 
 
-class BaseCommandProcessor(object):
+class BaseCommandProcessor(Configurable):
 
-    def __init__(self):
+    def __init__(self, config=None):
+        super(BaseCommandProcessor, self).__init__(config=config)
         self.MODULE = None
         self.SUBMODULE = None
         self._parent = None
-        self._sys_config = None
         self._module_config = None
 
     def _get_module_id(self):
@@ -72,17 +73,9 @@ class BaseCommandProcessor(object):
     def get_module_configuration(self):
         return self._module_config
 
-    def get_configuration(self):
-        return self._sys_config
-
-    def set_configuration(self, config):
-        self._sys_config = config
-
 
 class CommandProcessor(BaseCommandProcessor):
 
-    def __init__(self):
-        super(CommandProcessor, self).__init__()
+    def __init__(self, config=None):
+        super(CommandProcessor, self).__init__(config=config)
 
-    def do_configure(self):
-        pass
