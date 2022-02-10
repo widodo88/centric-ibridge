@@ -19,6 +19,7 @@ import logging
 from core.prochandler import CommandProcessor
 from core.msgobject import mq_event
 from utils.krclient import KRWebClient
+from common import consts
 from solr.core import SolrConnection
 
 
@@ -33,13 +34,19 @@ class HREmpUpdateSearchDB(CommandProcessor):
         self._solr_connection = None
 
     def do_configure(self):
+        prop = self.get_module_configuration()
+        self._props = dict if self._module not in prop else prop[self._module]
+        config = self.get_configuration()
+        base_url = config[consts.KRAKEN_REST_BASE_URL] if consts.KRAKEN_REST_BASE_URL in config else None
+        username = config[consts.KRAKEN_REST_USERNAME] if consts.KRAKEN_REST_USERNAME in config else None
+        password = config[consts.KRAKEN_REST_PASSWORD] if consts.KRAKEN_REST_PASSWORD in config else None
+        if not base_url or not username or not password:
+            return
         try:
-            if self._rest_service is None:
-                self._rest_service = KRWebClient(parent=self.get_parent())
-                self._rest_service.set_user(self._props['KR_REST_USERNAME'], self._props['KR_REST_PASSWORD'])
-            if self._solr_connection is None:
-                self._solr_connection = SolrConnection("{0}/{1}".format(self._props['SOLR_URL'],
-                                                                        self._props['SOLR_EMP_NAMESPACE']))
+            self._rest_service = KRWebClient(host_url=base_url, parent=self.get_parent())
+            self._rest_service.set_user(username, password)
+            self._solr_connection = SolrConnection("{0}/{1}".format(self._props['SOLR_URL'],
+                                                                    self._props['SOLR_EMP_NAMESPACE']))
         except Exception:
             logging.error(traceback.format_exc())
 
