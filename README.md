@@ -53,7 +53,8 @@ cd ./centric-ibridge
 source ./venv/bin/activate
 python ./ibridge.py notify MODULE@EXAMPLE:HELLO_EVENT cono=600 dvno=USG
 ```
-Find the execution result in ./log/ibridge.log
+Find the execution result in ./log/ibridge.log. if you enable ```restapi.enabled``` in .env variable the API service 
+could be accessed through 127.0.0.1:8000
 
 Stopping the daemon can be done using this command:
 ```sh
@@ -61,3 +62,21 @@ cd ./centric-ibridge
 source ./venv/bin/activate
 python ./ibridge.py stop
 ```
+
+## Debugging API Service
+
+It is recommended disable ```restapi.enabled``` in .env file, and use irest.py as entry point for debugging purpose.
+
+## API Service Authentication
+
+API Service use OAuth2 as authentication mechanis, and store user database in sqlite database. Securing and 
+setting-up first user is a bit tricky.
+
+- Setup the ```restapi.secret.key``` in .env variable as application secret key
+- Remove ```restapi.admin.username``` from .env variable to enable first user registration
+- Start the Bridge
+- Access API service through 127.0.0.1:8000 and register an admin user 
+- After registration successfull, stop the Bridge
+- Add ```restapi.admin.username``` and define admin user in the .env file
+- Start the Bridge
+- Done.
