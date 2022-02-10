@@ -44,7 +44,7 @@ class C8Example(CommandProcessor):
         try:
             if not self._c8rest_service.login_expired():
                 return
-            http_login = HttpClient(base_url=base_url)
+            http_login = HttpClient(host_url=base_url)
             login_info = {"username": username,
                           "password": password}
             result = http_login.post("session", json_data=login_info)
