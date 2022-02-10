@@ -45,7 +45,7 @@ class RESTServerStarter(BaseAppServer):
                 'websvcsvr',
                 '-w', '4',
                 '-k', 'uvicorn.workers.UvicornWorker',
-                '-b', '0.0.0.0:8080',
+                '-b', '0.0.0.0:8000',
                 '-n', 'centric-rest-ibridge',
                 '-p', str(pid_file),
                 '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
