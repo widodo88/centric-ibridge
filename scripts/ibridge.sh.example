@@ -1,5 +1,5 @@
 #!/bin/sh
-# Start/stop the cron daemon.
+# Start/stop the centric-ibridge daemon.
 #
 ### BEGIN INIT INFO
 # Provides:          ibridge
