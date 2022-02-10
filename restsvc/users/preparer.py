@@ -56,7 +56,14 @@ class UserRouterPreparer(RESTModulePreparer):
         auth_backend = AuthenticationBackend(name="jwt", transport=bearer_transport, get_strategy=get_jwt_strategy)
         self._app_user = FastAPIUsers(get_user_manager, [auth_backend], User, UserCreate, UserUpdate, UserDB)
         app.include_router(self._app_user.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"])
+        self.include_user_registration(app, get_user_manager)
 
+        @app.on_event("startup")
+        async def on_startup():
+            # Not needed if you setup a migration system like Alembic
+            await create_db_and_tables()
+
+    def include_user_registration(self, app: FastAPI, get_user_manager: UserManagerDependency[models.UC, models.UD]):
         def get_register_router(
                 user_mgr: UserManagerDependency[models.UC, models.UD],
                 user_model: Type[models.U],
@@ -132,19 +139,14 @@ class UserRouterPreparer(RESTModulePreparer):
             return router
 
         if self.has_admin_user():
-            app.include_router(get_register_router(get_user_manager, User, UserCreate))
+            app.include_router(get_register_router(get_user_manager, User, UserCreate), prefix="/auth", tags=["auth"])
         else:
             app.include_router(self._app_user.get_register_router(), prefix="/auth", tags=["auth"])
 
         # app.include_router(self._app_user.get_reset_password_router(), prefix="/auth", tags=["auth"])
-        # app.include_router(self._app_user.get_verify_router(), prefix="/auth", tags=["auth"])
-        # app.include_router(self._app_user.get_users_router(), prefix="/users", tags=["users"],
-        #                            responses={404: {"description": "Not found"}})
-
-        @app.on_event("startup")
-        async def on_startup():
-            # Not needed if you setup a migration system like Alembic
-            await create_db_and_tables()
+        app.include_router(self._app_user.get_verify_router(), prefix="/auth", tags=["auth"])
+        app.include_router(self._app_user.get_users_router(), prefix="/users", tags=["users"],
+                           responses={404: {"description": "Not found"}})
 
     def has_admin_user(self):
         return self._admin_user is not None
