@@ -68,7 +68,11 @@ class RestApp(BaseAppServer):
 
     def register_rest_modules(self) -> FastAPI:
         config = self.get_configuration()
-        for mod_name in consts.REST_SERVICE_AVAILABLE:
+        rest_services = config[consts.RESTAPI_AVAILABLE_SERVICES] if \
+            consts.RESTAPI_AVAILABLE_SERVICES in config else None
+        rest_services = rest_services if rest_services else ""
+        rest_services = [service.strip() for service in rest_services.split(",") if service not in [None, '']]
+        for mod_name in rest_services:
             mod = self._get_klass(mod_name)
             if isinstance(mod, APIRouter):
                 self.rest_app.include_router(mod)

@@ -108,6 +108,8 @@ class MessageCommand(AbstractMessage):
         self.COMMAND = command
 
     def encode_command(self):
+        if self.PARAMS is None:
+            self.PARAMS = [list(), dict()]
         adict = {'msgtype': self.message_mode,
                  'module': self.MODULE,
                  'submodule': self.SUBMODULE,
