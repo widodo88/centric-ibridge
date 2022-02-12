@@ -35,28 +35,26 @@ class AmqpTransport(TransportHandler):
         super(AmqpTransport, self).do_configure()
         self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
         self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
-        self.amqp_config = amqp.Connection(host=self.host, userid=self.get_transport_user(),
-                                           password=self.get_transport_password())
 
     def do_listen(self):
-        client = self.amqp_config.channel(self.get_transport_channel())
-        client.queue_declare(queue=self.get_transport_client_id(), durable=self.durable, auto_delete=self.auto_delete)
-        client.exchange_declare(exchange=self.get_client_exchange(), type=self.type, durable=self.durable,
-                                auto_delete=self.auto_delete)
-        client.queue_bind(queue=self.get_transport_client_id(), exchange=self.get_client_exchange())
-        client.basic_consume(queue=self.get_transport_client_id(), no_ack=True, callback=self.handle_message)
-
-        try:
+        with amqp.Connection(host=self.host, userid=self.get_transport_user(), password=self.get_transport_password()) as self.amqp_config:
+            client = self.amqp_config.channel()
+            client.queue_declare(queue=self.get_transport_client_id(), durable=self.durable, auto_delete=self.auto_delete)
+            client.exchange_declare(exchange=self.get_client_exchange(), type=self.type, durable=self.durable,
+                                    auto_delete=self.auto_delete)
+            client.queue_bind(queue=self.get_transport_client_id(), exchange=self.get_client_exchange())
+            client.basic_consume(queue=self.get_transport_client_id(), no_ack=True, callback=self.handle_message)
             try:
-                while self.is_running():
-                    client.wait()
-                client.close()
-            except Exception as ex:
-                logging.error(ex)
-                client.close()
-                raise
-        finally:
-            self.amqp_config.close()
+                try:
+                    while self.is_running():
+                        client.wait()
+                    client.close()
+                except Exception as ex:
+                    logging.error(ex)
+                    client.close()
+                    raise
+            finally:
+                self.amqp_config.close()
 
     def get_client_exchange(self):
         return self._my_exchange
