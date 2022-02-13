@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
+import traceback
 import socket
 import selectors
 import os
@@ -34,6 +35,15 @@ class UnixSocketTransport(LocalTransportHandler):
         super(UnixSocketTransport, self).do_configure()
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.selector = selectors.DefaultSelector()
+
+    def do_stop(self):
+        super(UnixSocketTransport, self).do_stop()
+        if not self.socket:
+            return
+        try:
+            self.socket.close()
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
 
     def do_listen(self):
         should_terminate = False
@@ -62,11 +72,7 @@ class UnixSocketTransport(LocalTransportHandler):
             except Exception as ex:
                 logging.error(ex)
             finally:
-                try:
-                    if should_terminate:
-                        self.stop()
-                except:
-                    pass
+                self.stop() if should_terminate else None
 
     def notify_server(self, message_obj):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
