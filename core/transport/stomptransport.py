@@ -54,10 +54,7 @@ class StompTransport(TransportHandler):
                         frame = client.receiveFrame()
                         cmd_str = frame.body
                         client.ack(frame)
-                        if cmd_str is not None:
-                            self.handle_message(cmd_str)
-                        else:
-                            logging.info("Message is Empty, bypassing")
+                        self.handle_message(cmd_str)
                     else:
                         time.sleep(0.4)
                     if (time.time() - client.lastSent) > client_heartbeat:
