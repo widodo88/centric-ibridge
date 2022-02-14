@@ -1,0 +1,47 @@
+#!/bin/sh
+# Start/stop the centric-ibridge daemon.
+#
+### BEGIN INIT INFO
+# Provides:          ibridge
+# Required-Start:    $remote_fs $syslog $time
+# Required-Stop:     $remote_fs $syslog $time
+# Should-Start:      $network $named slapd autofs ypbind nscd nslcd winbind
+# Should-Stop:       $network $named slapd autofs ypbind nscd nslcd winbind
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Regular background centric ibridge daemon
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="iBridge daemon"
+NAME=ibridge
+SCRIPTNAME=/etc/init.d/"$NAME"
+APPROOT=/opt/centric-ibridge/
+
+DEF_USR=bagapp
+
+test -f $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+start() {
+    su - $DEF_USR -c "/$APPROOT/bridge start" >>/dev/null 2>&1 &
+}
+
+stop() {
+    su - $DEF_USR -c "/$APPROOT/bridge stop" >>/dev/null 2>&1 &
+}
+
+
+case "$1" in
+start)	start
+	;;
+stop)	stop
+	;;
+*)	log_action_msg "Usage: /etc/init.d/ibridge {start|stop}"
+        exit 2
+        ;;
+esac
+exit 0

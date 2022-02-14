@@ -42,12 +42,12 @@ class TransportHandler(MessageHandler):
         pass
 
     def do_configure(self):
-        self._transport_address = self._get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
-        self._transport_port = self._get_config_value(consts.MQ_TRANSPORT_PORT, None)
-        self._transport_username = self._get_config_value(consts.MQ_TRANSPORT_USER, None)
-        self._transport_password = self._get_config_value(consts.MQ_TRANSPORT_PASS, None)
-        self._transport_channel = self._get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
-        self._transport_client_id = self._get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._transport_address = self.get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
+        self._transport_port = self.get_config_value(consts.MQ_TRANSPORT_PORT, None)
+        self._transport_username = self.get_config_value(consts.MQ_TRANSPORT_USER, None)
+        self._transport_password = self.get_config_value(consts.MQ_TRANSPORT_PASS, None)
+        self._transport_channel = self.get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._transport_client_id = self.get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
 
     def do_start(self):
         if self.is_enabled():
@@ -104,7 +104,6 @@ class TransportHandler(MessageHandler):
     def set_transport_client_id(self, client_id):
         self._transport_client_id = client_id
 
-    def _get_config_value(self, key, def_value):
-        config = self.get_configuration()
+    def get_config_value(self, key, def_value):
         config_key = str(key).format(self._transport_index)
-        return def_value if config_key not in config else config[config_key]
+        return super(TransportHandler, self).get_config_value(config_key, def_value)

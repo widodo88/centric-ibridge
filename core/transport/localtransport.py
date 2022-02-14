@@ -17,6 +17,8 @@
 import logging
 import socket
 import selectors
+import traceback
+
 from common import consts
 from core.translocal import LocalTransportHandler
 
@@ -32,6 +34,15 @@ class LocalhostTransport(LocalTransportHandler):
         super(LocalhostTransport, self).do_configure()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.selector = selectors.DefaultSelector()
+        
+    def do_stop(self):
+        super(LocalhostTransport, self).do_stop()
+        if not self.socket:
+            return
+        try:
+            self.socket.close()
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
 
     def do_listen(self):
         should_terminate = False
@@ -61,11 +72,7 @@ class LocalhostTransport(LocalTransportHandler):
             except Exception as ex:
                 logging.error(ex)
             finally:
-                try:
-                    if should_terminate:
-                        self.stop()
-                except Exception as ex:
-                    pass
+                self.stop() if should_terminate else None
 
     def notify_server(self, message_obj):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

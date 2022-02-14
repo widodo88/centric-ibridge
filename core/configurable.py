@@ -58,6 +58,10 @@ class Configurable(object):
         finally:
             self.lock.release()
 
+    def get_config_value(self, key, def_value):
+        return_val = def_value if key not in self._configuration else self._configuration[key]
+        return def_value if return_val in [None, ""] else def_value
+
     def _set_configured(self):
         self._configured = Configurable.CONFIGURED
 

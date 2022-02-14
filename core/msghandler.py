@@ -43,6 +43,8 @@ class MessageNotifier(StartableListener):
 class MessageHandler(Startable):
 
     def handle_message(self, message):
+        if message in [None, '']:
+            return
         valid_listeners = [listener for listener in self.get_listeners() if
                            isinstance(listener, MessageNotifier)]
         for listener in valid_listeners:

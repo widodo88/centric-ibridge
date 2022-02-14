@@ -33,7 +33,7 @@ class AmqpTransport(TransportHandler):
 
     def do_configure(self):
         super(AmqpTransport, self).do_configure()
-        self._my_exchange = self._get_config_value(consts.MQ_MY_EXCHANGE, None)
+        self._my_exchange = self.get_config_value(consts.MQ_MY_EXCHANGE, None)
         self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
 
     def do_listen(self):

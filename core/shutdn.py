@@ -13,7 +13,7 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+import traceback
 from threading import Thread, RLock
 from socket import AF_INET, socket, SOCK_STREAM
 from core.startable import Startable
@@ -74,7 +74,12 @@ class ShutdownHookMonitor(Startable):
         self.shutdown_thread.start()
 
     def do_stop(self):
-        self.socket.close()
+        if not self.socket:
+            return
+        try:
+            self.socket.close()
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
 
     def listen(self):
         should_terminate = False
@@ -102,10 +107,7 @@ class ShutdownHookMonitor(Startable):
             except Exception as ex:
                 logging.error(ex)
             finally:
-                try:
-                    self.stop() if should_terminate else None
-                except:
-                    pass
+                self.stop() if should_terminate else None
 
     @classmethod
     def get_default_instance(cls):
