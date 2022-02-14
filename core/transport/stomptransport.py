@@ -32,7 +32,7 @@ class StompTransport(TransportHandler):
 
     def do_configure(self):
         super(StompTransport, self).do_configure()
-        self._client_heartbeat = self.get_config_value(consts.MQ_CLIENT_HEARTBEAT, 20000)
+        self._client_heartbeat = self.get_config_value(consts.MQ_TRANSPORT_HEARTBEAT, 20000)
         self._stomp_config = StompConfig("tcp://{0}:{1}".format(self.get_transport_address(),
                                                                 self.get_transport_port()),
                                          login=self.get_transport_user(),
