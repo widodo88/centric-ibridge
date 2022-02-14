@@ -50,6 +50,11 @@ class MqttTransport(TransportHandler):
         logging.info("Connected to mqtt broker")
         if not self._subscribed:
             self.client.subscribe(self.get_transport_channel())
+            
+    def do_stop(self):
+        super(MqttTransport, self).do_stop()
+        if self.client:
+            self.client.loop_stop()
 
     def do_listen(self):
         logging.info("Subscribing {} on {}".format(self.get_transport_address(), self.get_transport_channel()))
