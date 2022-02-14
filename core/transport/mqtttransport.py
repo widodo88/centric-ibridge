@@ -63,6 +63,7 @@ class MqttTransport(TransportHandler):
         self.client.on_message = self.on_message
         self.client.on_subscribe = self.on_subscribe
         self.client.on_disconnect = self.on_disconnect
+        self.client.username_pw_set(self.get_transport_user(), self.get_transport_password())
         self.client.connect(self.get_transport_address(), int(self.get_transport_port()))
         self.client.subscribe(self.get_transport_channel())
 
