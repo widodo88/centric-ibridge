@@ -18,6 +18,7 @@ import logging
 from uuid import uuid4
 from paho.mqtt import client
 from core.transhandler import TransportHandler
+from time import sleep
 
 
 class MqttTransport(TransportHandler):
@@ -25,7 +26,8 @@ class MqttTransport(TransportHandler):
     def __init__(self, config=None, transport_index=0):
         super(MqttTransport, self).__init__(config=config, transport_index=transport_index)
         self.client = None
-        self.subscribed = False
+        self._subscribed = False
+        self._retry_timeout = 0
 
     def do_configure(self):
         super(MqttTransport, self).do_configure()
@@ -36,15 +38,20 @@ class MqttTransport(TransportHandler):
             self.handle_message(bytes(msg.payload.decode(), 'utf-8'))
 
     def on_subscribe(self, client, obj, mid, granted_qos):
-        self.subscribed = True
+        self._subscribed = True
 
     def on_disconnect(self, client, userdata, rc):
         logging.info("Disconnected to mqtt broker")
-        self.subscribed = False
+        self._subscribed = False
+        self._retry_timeout = 60 if self._retry_timeout > 60 else self._retry_timeout + 2
+
+        sleep(self._retry_timeout)
+        self.do_listen()
 
     def on_connect(self, client, obj, flags, rc):
         logging.info("Connected to mqtt broker")
-        if not self.subscribed:
+        self._retry_timeout = 0
+        if not self._subscribed:
             self.client.subscribe(self.get_transport_channel())
 
     def do_listen(self):
@@ -58,4 +65,4 @@ class MqttTransport(TransportHandler):
         self.client.subscribe(self.get_transport_channel())
 
         while self.is_running():
-            self.client.loop_start()
+            self.client.loop()
