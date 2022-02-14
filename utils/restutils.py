@@ -14,11 +14,22 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import asyncio
 import logging
+import functools
 from threading import RLock
 
 _IS_RUNNING = False
 _LOCK = RLock()
+
+
+def execute_async(f):
+    @functools.wraps(f)
+    def inner(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        return loop.run_in_executor(None, lambda: f(*args, **kwargs))
+
+    return inner
 
 
 def _get_klass_module(class_name):
