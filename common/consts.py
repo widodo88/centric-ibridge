@@ -28,8 +28,9 @@ C8_REST_USERNAME = "c8.rest.username"
 C8_REST_PASSWORD = "c8.rest.password"
 
 BRIDGE_ENABLED = "bridge.enabled"
-RESTAPI_ENABLED = "restapi.enabled"
 
+RESTAPI_ENABLED = "restapi.enabled"
+RESTAPI_ROOT_PATH = "restapi.root.path"
 RESTAPI_SECRET_KEY = "restapi.secret.key"
 RESTAPI_ADMIN_USERNAME = "restapi.admin.username"
 RESTAPI_AVAILABLE_SERVICES = "restapi.available.services"
