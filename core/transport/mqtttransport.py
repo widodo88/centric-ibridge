@@ -26,7 +26,6 @@ class MqttTransport(TransportHandler):
         super(MqttTransport, self).__init__(config=config, transport_index=transport_index)
         self.client = None
         self._subscribed = False
-        self._retry_timeout = 0
 
     def do_configure(self):
         super(MqttTransport, self).do_configure()
