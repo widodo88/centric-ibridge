@@ -25,7 +25,7 @@ class MqttTransport(TransportHandler):
     def __init__(self, config=None, transport_index=0):
         super(MqttTransport, self).__init__(config=config, transport_index=transport_index)
         self.client = None
-        self.subscribed = False
+        self._subscribed = False
 
     def do_configure(self):
         super(MqttTransport, self).do_configure()
@@ -36,15 +36,19 @@ class MqttTransport(TransportHandler):
             self.handle_message(bytes(msg.payload.decode(), 'utf-8'))
 
     def on_subscribe(self, client, obj, mid, granted_qos):
-        self.subscribed = True
+        self._subscribed = True
+
+    def do_stop(self):
+        self.client.loop_stop()
+        super(MqttTransport, self).do_stop()
 
     def on_disconnect(self, client, userdata, rc):
         logging.info("Disconnected to mqtt broker")
-        self.subscribed = False
+        self._subscribed = False
 
     def on_connect(self, client, obj, flags, rc):
         logging.info("Connected to mqtt broker")
-        if not self.subscribed:
+        if not self._subscribed:
             self.client.subscribe(self.get_transport_channel())
 
     def do_listen(self):
