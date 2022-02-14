@@ -13,6 +13,8 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import time
+import traceback
 
 import amqp
 import logging
@@ -23,38 +25,54 @@ from core.transhandler import TransportHandler
 class AmqpTransport(TransportHandler):
     def __init__(self, config=None, transport_index=0):
         super(AmqpTransport, self).__init__(config=config, transport_index=transport_index)
+        self._connection = None
+
         self.amqp_config = None
         self.host = None
         self.durable = True
-        self.auto_delete = False
-        # fanout, direct, topic
+        self.auto_delete = True
         self.type = "direct"
-        self._my_exchange = None
+        self._transport_exchange = None
 
     def do_configure(self):
         super(AmqpTransport, self).do_configure()
-        self._my_exchange = self.get_config_value(consts.MQ_MY_EXCHANGE, None)
-        self.host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
+        host = "{0}:{1}".format(self.get_transport_address(), self.get_transport_port())
+        self._transport_exchange = self.get_config_value(consts.MQ_TRANSPORT_EXCHANGE, None)
+        self._connection = amqp.Connection(host=host, userid=self.get_transport_user(),
+                                           password=self.get_transport_password(),
+                                           exchange=self.get_transport_channel(),
+                                           heartbeat=10, read_timeout=2)
+
+    @staticmethod
+    def close_object(obj):
+        if not obj:
+            return
+        try:
+            obj.close()
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
+
+    def on_message_received(self, message):
+        message.channel.basic_ack(message.delivery_tag)
+        self.handle_message(message.body)
 
     def do_listen(self):
-        with amqp.Connection(host=self.host, userid=self.get_transport_user(), password=self.get_transport_password()) as self.amqp_config:
-            client = self.amqp_config.channel()
-            client.queue_declare(queue=self.get_transport_client_id(), durable=self.durable, auto_delete=self.auto_delete)
-            client.exchange_declare(exchange=self.get_client_exchange(), type=self.type, durable=self.durable,
-                                    auto_delete=self.auto_delete)
-            client.queue_bind(queue=self.get_transport_client_id(), exchange=self.get_client_exchange())
-            client.basic_consume(queue=self.get_transport_client_id(), no_ack=True, callback=self.handle_message)
-            try:
-                try:
-                    while self.is_running():
-                        client.wait()
-                    client.close()
-                except Exception as ex:
-                    logging.error(ex)
-                    client.close()
-                    raise
-            finally:
-                self.amqp_config.close()
+        channel = None
+        self._connection.connect()
+        try:
+            channel = self._connection.channel()
+            channel.queue_declare(queue=self.get_transport_channel(), passive=True,
+                                  durable=self.durable, auto_delete=self.auto_delete)
+            channel.exchange_declare(exchange=self._transport_exchange, type=self.type,
+                                     durable=self.durable, auto_delete=self.auto_delete)
+            channel.queue_bind(queue=self.get_transport_channel(), exchange=self._transport_exchange)
+            channel.basic_consume(callback=self.on_message_received)
+            while self.is_running() and (not self._connection.blocking_read(timeout=2)):
+                time.sleep(0.4)
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
+        finally:
+            self.close_object(channel)
+            self.close_object(self._connection)
 
-    def get_client_exchange(self):
-        return self._my_exchange
+

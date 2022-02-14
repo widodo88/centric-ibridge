@@ -48,8 +48,8 @@ MQ_TRANSPORT_USER = "mq.transport.{0}.user"
 MQ_TRANSPORT_PASS = "mq.transport.{0}.passwd"
 MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
 MQ_TRANSPORT_CLIENTID = "mq.transport.{0}.clientid"
-MQ_CLIENT_HEARTBEAT = "mq.transport.{0}.heartbeat"
-MQ_MY_EXCHANGE = "mq.transport.{0}.myexchange"
+MQ_TRANSPORT_HEARTBEAT = "mq.transport.{0}.heartbeat"
+MQ_TRANSPORT_EXCHANGE = "mq.transport.{0}.exchange"
 
 PRODUCTION_MODE = "production.mode"
 
