@@ -38,10 +38,6 @@ class MqttTransport(TransportHandler):
     def on_subscribe(self, client, obj, mid, granted_qos):
         self._subscribed = True
 
-    def do_stop(self):
-        self.client.loop_stop()
-        super(MqttTransport, self).do_stop()
-
     def on_disconnect(self, client, userdata, rc):
         logging.info("Disconnected to mqtt broker")
         self._subscribed = False
