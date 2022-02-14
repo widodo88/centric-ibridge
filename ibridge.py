@@ -121,10 +121,10 @@ class BridgeApp(BaseAppServer):
 
     def do_alt_stop_command(self, args):
         print("Stopping ", end=" ...")
-        bridgesrv = BridgeServer.get_default_instance()
-        bridgesrv.set_configuration(self.get_configuration())
+        bridge_srv = BridgeServer.get_default_instance()
+        bridge_srv.set_configuration(self.get_configuration())
         try:
-            bridgesrv.alt_shutdown_signal()
+            bridge_srv.alt_shutdown_signal()
             print("Done")
         except Exception as ex:
             print("Unable to shutdown \n\nReason: {0}".format(ex))
@@ -141,10 +141,10 @@ class BridgeApp(BaseAppServer):
         message_object.set_event(module, submodule, event)
         message_object.set_parameters(*arg, **kwarg)
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
-        bridgesrv = appserver_klass.get_default_instance()
-        bridgesrv.set_configuration(self.get_configuration())
+        bridge_srv = appserver_klass.get_default_instance()
+        bridge_srv.set_configuration(self.get_configuration())
         try:
-            bridgesrv.notify_server(message_object)
+            bridge_srv.notify_server(message_object)
             print("Done")
         except Exception as ex:
             print("Unable to send notification \n\nReason: {0}".format(ex))
@@ -161,10 +161,10 @@ class BridgeApp(BaseAppServer):
         message_object.set_command(module, submodule, command)
         message_object.set_parameters(*arg, **kwarg)
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
-        bridgesrv = appserver_klass.get_default_instance()
-        bridgesrv.set_configuration(self.get_configuration())
+        bridge_srv = appserver_klass.get_default_instance()
+        bridge_srv.set_configuration(self.get_configuration())
         try:
-            bridgesrv.notify_server(message_object)
+            bridge_srv.notify_server(message_object)
             print("Done")
         except Exception as ex:
             print("Unable to send notification \n\nReason: {0}".format(ex))

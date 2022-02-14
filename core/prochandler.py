@@ -79,3 +79,9 @@ class CommandProcessor(BaseCommandProcessor):
     def __init__(self, config=None):
         super(CommandProcessor, self).__init__(config=config)
 
+    @staticmethod
+    def get_property_value(prop, key, default):
+        ret_val = prop[key] if key in prop else default
+        ret_val = ret_val if ret_val else default
+        return ret_val
+
