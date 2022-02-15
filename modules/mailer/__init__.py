@@ -25,11 +25,12 @@ from core.prochandler import CommandProcessor
 
 class MailSender(CommandProcessor):
 
+    __module_name__ = 'COMMON@MAILER'
+
     def __init__(self):
         super(MailSender, self).__init__()
         prop = self.get_module_configuration()
-        self._module = 'COMMON@MAILER'
-        self._props = prop[self._module] if self._module in prop else dict()
+        self._props = prop[self.__module_name__] if self.__module_name__ in prop else dict()
         self._smtp_host = None
         self._smtp_port = None
         self._smtp_from = None
