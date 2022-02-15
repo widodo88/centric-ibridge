@@ -80,6 +80,19 @@ class AbstractMessage(BaseMessage):
     def encode(self):
         return None
 
+    def _set_cmd_event(self, cmd_evt):
+        pass
+
+    @classmethod
+    def create_message(cls, module, submodule, cmd_evt, *args, **kwargs):
+        message_obj = object.__new__(cls)
+        message_obj.__init__()
+        message_obj.MODULE = module
+        message_obj.SUBMODULE = submodule
+        message_obj._set_cmd_event(cmd_evt)
+        message_obj.set_parameters(*args, **kwargs)
+        return message_obj
+
 
 class MessageCommand(AbstractMessage):
 
@@ -120,6 +133,9 @@ class MessageCommand(AbstractMessage):
 
     def encode(self):
         return self.encode_command()
+
+    def _set_cmd_event(self, cmd_evt):
+        self.COMMAND = cmd_evt
 
 
 class MessageEvent(AbstractMessage):
@@ -162,6 +178,9 @@ class MessageEvent(AbstractMessage):
 
     def encode(self):
         return self.encode_command()
+
+    def _set_cmd_event(self, cmd_evt):
+        self.EVENT = cmd_evt
 
 
 class MessageFactory(BaseMessage):
