@@ -121,10 +121,10 @@ class BridgeApp(BaseAppServer):
 
     def do_alt_stop_command(self, args):
         print("Stopping ", end=" ...")
-        bridge_srv = BridgeServer.get_default_instance()
-        bridge_srv.set_configuration(self.get_configuration())
+        bridge_server = BridgeServer.get_default_instance()
+        bridge_server.set_configuration(self.get_configuration())
         try:
-            bridge_srv.alt_shutdown_signal()
+            bridge_server.alt_shutdown_signal()
             print("Done")
         except Exception as ex:
             print("Unable to shutdown \n\nReason: {0}".format(ex))
@@ -137,14 +137,12 @@ class BridgeApp(BaseAppServer):
         kwarg = args.kwargs
         arg = arg if arg else []
         kwarg = kwarg if kwarg else {}
-        message_object = MessageEvent()
-        message_object.set_event(module, submodule, event)
-        message_object.set_parameters(*arg, **kwarg)
+        message_object = MessageEvent.create_message(module, submodule, event, *arg, **kwarg)
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
-        bridge_srv = appserver_klass.get_default_instance()
-        bridge_srv.set_configuration(self.get_configuration())
+        bridge_server = appserver_klass.get_default_instance()
+        bridge_server.set_configuration(self.get_configuration())
         try:
-            bridge_srv.notify_server(message_object)
+            bridge_server.notify_server(message_object)
             print("Done")
         except Exception as ex:
             print("Unable to send notification \n\nReason: {0}".format(ex))
@@ -157,14 +155,12 @@ class BridgeApp(BaseAppServer):
         kwarg = args.kwargs
         arg = arg if arg else []
         kwarg = kwarg if kwarg else {}
-        message_object = MessageCommand()
-        message_object.set_command(module, submodule, command)
-        message_object.set_parameters(*arg, **kwarg)
+        message_object = MessageCommand.create_message(module, submodule, command, *arg, **kwarg)
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
-        bridge_srv = appserver_klass.get_default_instance()
-        bridge_srv.set_configuration(self.get_configuration())
+        bridge_server = appserver_klass.get_default_instance()
+        bridge_server.set_configuration(self.get_configuration())
         try:
-            bridge_srv.notify_server(message_object)
+            bridge_server.notify_server(message_object)
             print("Done")
         except Exception as ex:
             print("Unable to send notification \n\nReason: {0}".format(ex))
