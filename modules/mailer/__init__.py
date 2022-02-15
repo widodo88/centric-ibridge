@@ -17,6 +17,7 @@
 import traceback
 import logging
 import smtplib
+import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from core.msgobject import mq_command
@@ -61,6 +62,11 @@ class MailSender(CommandProcessor):
         message_header['From'] = self._smtp_from
         message_header['To'] = mail_to
         message_header.attach(MIMEText(mail_body, mime_type))
+        self._mailer.ehlo()
+        if self._smtp_ssl:
+            context = ssl.create_default_context()
+            self._mailer.starttls(context=context)
+            self._mailer.ehlo()
         self._mailer.login(self._smtp_user, self._smtp_pass)
         try:
             return_val = self._mailer.sendmail(self._smtp_from, mail_to, message_header.as_string())
