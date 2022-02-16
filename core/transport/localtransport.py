@@ -74,6 +74,18 @@ class LocalhostTransport(LocalTransportHandler):
             finally:
                 self.stop() if should_terminate else None
 
+    def connect(self):
+        raise NotImplementedError("not implemented here")
+
+    def disconnect(self):
+        raise NotImplementedError("not implemented here")
+
+    def publish_message(self, message_obj):
+        raise NotImplementedError("not implemented here")
+
+    def notify_server(self, message_obj):
+        raise NotImplementedError("notify_server not implemented here")
+
     def notify_server(self, message_obj):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))

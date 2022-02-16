@@ -101,7 +101,7 @@ class BaseExecutor(Startable):
                 logging.error(ex)
         return mod
 
-    def _create_object(self, klass):
+    def _create_object(self, klass, message_obj):
         if not klass:
             return None
         if klass.__name__ not in self._collection:
@@ -112,6 +112,7 @@ class BaseExecutor(Startable):
         module.set_configuration(self.get_configuration())
         module.set_module_configuration(self.get_module_configuration())
         module.set_parent(parent)
+        module.set_message_object(message_obj)
         module.configure()
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
         return module
@@ -153,7 +154,7 @@ class EventExecutor(ModuleExecutor):
                 list_mod = [str_item.split(":") for str_item in (str_mod.split(",") if str_mod else [])]
                 for str_mod, str_func in list_mod:
                     klass = self._get_klass(str_mod)
-                    module = self._create_object(klass)
+                    module = self._create_object(klass, message_obj)
                     logging.debug("EventExecutor.execute_module: klass and module {0} - {1}".format(klass, module))
                     self.assign_event(module, str_func, message_obj)
             except Exception as ex:
@@ -170,7 +171,7 @@ class EventExecutor(ModuleExecutor):
     def do_execute_event(module, func, event):
         try:
             logging.debug("Processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
-            module.perform_notify(func, event)
+            module.perform_execute(func, event)
         except Exception:
             logging.error(traceback.format_exc())
         finally:
@@ -210,7 +211,7 @@ class CommandExecutor(ModuleExecutor):
     def do_execute(module, command):
         try:
             logging.debug("Processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
-            module.perform_exec(command)
+            module.perform_execute(command)
         except Exception:
             logging.error(traceback.format_exc())
         finally:
