@@ -172,12 +172,10 @@ class ModuleExecutor(BaseExecutor):
                     for str_mod, str_func in list_mod:
                         klass = self._get_klass(str_mod, section_props)
                         module = self._create_object(klass, message_obj)
-                        logging.debug("ModuleExecutor.execute_module: klass and module {0} - {1}".format(klass, module))
                         self.assign_task(module, message_obj, str_func)
                 else:
                     klass = self._get_klass(message_obj, props)
                     module = self._create_object(klass, message_obj)
-                    logging.debug("CommandExecutor.execute_module: klass and module {0} - {1}".format(klass, module))
                     self.assign_task(module, message_obj)
             except Exception as ex:
                 logging.error(traceback.format_exc(ex))
