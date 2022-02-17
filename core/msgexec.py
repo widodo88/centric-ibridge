@@ -194,7 +194,7 @@ class CommandExecutor(ModuleExecutor):
         if self.has_service(message_obj):
             try:
                 klass = self._get_klass(message_obj)
-                module = self._create_object(klass)
+                module = self._create_object(klass, message_obj)
                 logging.debug("CommandExecutor.execute_module: klass and module {0} - {1}".format(klass, module))
                 self.assign_task(module, message_obj)
             except Exception as ex:
