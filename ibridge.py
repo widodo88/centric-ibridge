@@ -21,6 +21,7 @@ import os
 import re
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
+from multiprocessing_logging import install_mp_handler
 from common import consts
 from core.baseappsrv import BaseAppServer
 from core.shutdn import ShutdownHookMonitor
@@ -221,6 +222,7 @@ def configure_logging(config):
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     handler = TimedRotatingFileHandler(log_file, when='midnight', backupCount=5)
     logging.basicConfig(format=log_format, datefmt=log_date_format, handlers=[handler], level=default_level)
+    install_mp_handler()
 
 
 def main(argv=None):
