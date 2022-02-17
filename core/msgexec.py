@@ -65,8 +65,14 @@ class BaseExecutor(Startable):
     def set_properties(self, props):
         self._props = props
 
+    def has_service(self, message_obj):
+        raise NotImplementedError()
+
     def execute_module(self, message_obj):
-        pass
+        raise NotImplementedError()
+
+    def assign_task(self, module, message_obj, func=None):
+        raise NotImplementedError()
 
     def set_module_configuration(self, module_config):
         self._module_config = module_config
@@ -129,8 +135,18 @@ class ModuleExecutor(BaseExecutor):
     def _register_klass_to_cache(self, class_name, mod):
         self._module_dict[class_name] = mod
 
-    def has_service(self, message_obj):
-        return None
+    def assign_task(self, module, message_obj, func=None):
+        self._pool.apply_async(self.do_execute, (module, message_obj, func))
+
+    @staticmethod
+    def do_execute(module, message_obj, func):
+        logging.debug("Processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
+        try:
+            module.perform_execute(message_obj, func)
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
+        finally:
+            logging.debug("End processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
 
 
 class EventExecutor(ModuleExecutor):
@@ -156,26 +172,11 @@ class EventExecutor(ModuleExecutor):
                     klass = self._get_klass(str_mod)
                     module = self._create_object(klass, message_obj)
                     logging.debug("EventExecutor.execute_module: klass and module {0} - {1}".format(klass, module))
-                    self.assign_event(module, str_func, message_obj)
+                    self.assign_task(module, message_obj, str_func)
             except Exception as ex:
                 logging.error(ex)
         else:
             logging.error("Could not parse message correctly")
-
-    def assign_event(self, module, func, event):
-        logging.debug("Submitting event {0}.{1}:{2} params: {3}".format(event.MODULE, event.SUBMODULE,
-                                                                        event.EVENT, event.PARAMS))
-        self._pool.apply_async(self.do_execute_event(module, func, event))
-
-    @staticmethod
-    def do_execute_event(module, func, event):
-        try:
-            logging.debug("Processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
-            module.perform_execute(func, event)
-        except Exception:
-            logging.error(traceback.format_exc())
-        finally:
-            logging.debug("End processing {0} event on thread {1}".format(event.get_module_id(), get_ident()))
 
 
 class CommandExecutor(ModuleExecutor):
@@ -201,21 +202,6 @@ class CommandExecutor(ModuleExecutor):
                 logging.error(ex)
         else:
             logging.error("Could not find service for {0}.{1}".format(message_obj.MODULE, message_obj.SUBMODULE))
-
-    def assign_task(self, module, command):
-        logging.debug("Submitting command {0}.{1}:{2} params: {3}".format(command.MODULE, command.SUBMODULE,
-                                                                          command.COMMAND, command.PARAMS))
-        self._pool.apply_async(self.do_execute, (module, command))
-
-    @staticmethod
-    def do_execute(module, command):
-        try:
-            logging.debug("Processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
-            module.perform_execute(command)
-        except Exception:
-            logging.error(traceback.format_exc())
-        finally:
-            logging.debug("End processing {0} command on thread {1}".format(command.get_module_id(), get_ident()))
 
 
 class ExecutorFactory(AbstractFactory):
