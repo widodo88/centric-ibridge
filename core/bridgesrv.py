@@ -19,7 +19,8 @@ from core.baseappsrv import BaseAppServer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
-from core. msgexec import MessageExecutionManager
+from core.msgexec import MessageExecutionManager
+from core.msgpexec import ProcessMessageExecutionManager
 from utils import transhelper
 
 
@@ -40,6 +41,11 @@ class BridgeServer(BaseAppServer):
 
         message_listener = MessageNotifier()
         execution_manager = MessageExecutionManager(cfg)
+        # execution_manager = None
+        # -- DO NOT USE: process based execution were still buggy as hell --
+        if not execution_manager:
+            execution_manager = ProcessMessageExecutionManager(cfg)
+        # -- DO NOT USE: process based execution were still buggy as hell --
         execution_manager.register_listener(message_listener)
         self.add_object(execution_manager)
 

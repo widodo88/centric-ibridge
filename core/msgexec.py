@@ -20,7 +20,7 @@ from common import consts
 from common import modconfig
 from core.objfactory import AbstractFactory
 from core.startable import Startable, StartableManager
-from core.msgobject import MessageFactory, MessageEvent
+from core.msgobject import MessageFactory, MessageEvent, AbstractMessage
 from core.msghandler import MessageNotifier
 from core.prochandler import CommandProcessor
 from multiprocessing.pool import ThreadPool
@@ -35,24 +35,23 @@ class DummyClass(object):
 
 class BaseExecutor(Startable):
 
-    def __init__(self, config=None, module_config=None, module=None, workers=4):
+    def __init__(self, config=None, module_config=None, module=None):
         super(BaseExecutor, self).__init__(config=config)
         self._collection = dict()
-        self._max_processes = workers
-        self._pool = None
         self._module = module
         self._module_config = module_config
         self._command_props = None
         self._event_props = None
+        self._module_dict = dict()
 
-    def do_configure(self):
-        self._max_processes = self._max_processes if self._max_processes > 0 else 4
+    def _get_klass_from_cache(self, class_name):
+        return self._module_dict[class_name] if class_name in self._module_dict else None
 
-    def do_start(self):
-        self._pool = ThreadPool(processes=self._max_processes)
+    def _register_klass_to_cache(self, class_name, mod):
+        self._module_dict[class_name] = mod
 
-    def do_stop(self):
-        self._pool.terminate()
+    def set_module(self, module):
+        self._module = module
 
     def get_module(self):
         return self._module
@@ -70,13 +69,13 @@ class BaseExecutor(Startable):
         self._command_props = cmd_props
         self._event_props = event_props
 
-    def has_service(self, message_obj):
-        raise NotImplementedError()
+    def has_service(self, message_obj: AbstractMessage):
+        props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
+            else self.get_command_properties()
+        return props.has_section(message_obj.get_module_id()) if isinstance(message_obj, MessageEvent) \
+            else message_obj.get_module_id() in props.keys()
 
-    def execute_module(self, message_obj):
-        raise NotImplementedError()
-
-    def assign_task(self, module, message_obj, func=None):
+    def submit_task(self, message_obj):
         raise NotImplementedError()
 
     def set_module_configuration(self, module_config):
@@ -85,20 +84,14 @@ class BaseExecutor(Startable):
     def get_module_configuration(self):
         return self._module_config
 
-    def _get_klass_from_cache(self, class_name):
-        raise NotImplementedError()
-
-    def _register_klass_to_cache(self, class_name, mod):
-        raise NotImplementedError()
-
     @staticmethod
-    def _get_klass_module(msg_obj, props):
+    def _get_klass_module(msg_obj: AbstractMessage, props):
         class_name = msg_obj if isinstance(msg_obj, str) \
             else props.properties[msg_obj.get_module_id()]
         components = class_name.split(".")
         return components, ".".join(components[:-1]), class_name
 
-    def _get_klass(self, msg_obj, props):
+    def _get_klass(self, msg_obj: AbstractMessage, props):
         components, import_modules, class_name = self._get_klass_module(msg_obj, props)
         logging.debug("BaseExecutor.get_klass: {0} output {1} - {2}".format(msg_obj, components, import_modules))
         mod = self._get_klass_from_cache(class_name)
@@ -113,7 +106,7 @@ class BaseExecutor(Startable):
                 logging.error(ex)
         return mod
 
-    def _create_object(self, klass, message_obj):
+    def _create_object(self, klass, message_obj: AbstractMessage):
         if not klass:
             return None
         if klass.__name__ not in self._collection:
@@ -129,29 +122,48 @@ class BaseExecutor(Startable):
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
         return module
 
+    def _collect_object_module(self, message_obj: AbstractMessage) -> [[object, str]]:
+        props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
+            else self.get_command_properties()
+        ret_list = list()
+        try:
+            if isinstance(message_obj, MessageEvent):
+                section_props = props[message_obj.get_module_id()]
+                str_mod = None if message_obj.EVENT not in section_props else section_props[message_obj.EVENT]
+                list_mod = [str_item.split(":") for str_item in (str_mod.split(",") if str_mod else [])]
+                for str_mod, str_func in list_mod:
+                    klass = self._get_klass(str_mod, section_props)
+                    module = self._create_object(klass, message_obj)
+                    ret_list.append([module, str_func])
+            else:
+                klass = self._get_klass(message_obj, props)
+                module = self._create_object(klass, message_obj)
+                ret_list.append([module, None])
+        except Exception as ex:
+            logging.error(traceback.format_exc(ex))
+        return ret_list
+
 
 class ModuleExecutor(BaseExecutor):
     def __init__(self, config=None, module=None, workers=4):
-        super(ModuleExecutor, self).__init__(config=config, module=module, workers=workers)
-        self._module_dict = dict()
+        super(ModuleExecutor, self).__init__(config=config, module=module)
+        self._max_processes = workers
+        self._pool = None
 
-    def _get_klass_from_cache(self, class_name):
-        return self._module_dict[class_name] if class_name in self._module_dict else None
+    def do_configure(self):
+        self._max_processes = self._max_processes if self._max_processes > 0 else 4
 
-    def _register_klass_to_cache(self, class_name, mod):
-        self._module_dict[class_name] = mod
+    def do_start(self):
+        self._pool = ThreadPool(processes=self._max_processes)
 
-    def has_service(self, message_obj):
-        props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
-            else self.get_command_properties()
-        return props.has_section(message_obj.get_module_id()) if isinstance(message_obj, MessageEvent) \
-            else message_obj.get_module_id() in props.keys()
+    def do_stop(self):
+        self._pool.terminate()
 
-    def assign_task(self, module, message_obj, func=None):
+    def assign_task(self, module: BaseExecutor, message_obj: AbstractMessage, func: str = None):
         self._pool.apply_async(self.do_execute, (module, message_obj, func))
 
     @staticmethod
-    def do_execute(module, message_obj, func):
+    def do_execute(module: CommandProcessor, message_obj: AbstractMessage, func: str):
         logging.debug("Processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
         try:
             module.perform_execute(message_obj, func)
@@ -160,35 +172,24 @@ class ModuleExecutor(BaseExecutor):
         finally:
             logging.debug("End processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
 
-    def execute_module(self, message_obj):
+    def execute_module(self, message_obj: AbstractMessage):
+        for module, str_func in self._collect_object_module(message_obj):
+            self.assign_task(module, message_obj, str_func)
+
+    def submit_task(self, message_obj: AbstractMessage):
         if self.has_service(message_obj):
-            props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
-                else self.get_command_properties()
-            try:
-                if isinstance(message_obj, MessageEvent):
-                    section_props = props[message_obj.get_module_id()]
-                    str_mod = None if message_obj.EVENT not in section_props else section_props[message_obj.EVENT]
-                    list_mod = [str_item.split(":") for str_item in (str_mod.split(",") if str_mod else [])]
-                    for str_mod, str_func in list_mod:
-                        klass = self._get_klass(str_mod, section_props)
-                        module = self._create_object(klass, message_obj)
-                        self.assign_task(module, message_obj, str_func)
-                else:
-                    klass = self._get_klass(message_obj, props)
-                    module = self._create_object(klass, message_obj)
-                    self.assign_task(module, message_obj)
-            except Exception as ex:
-                logging.error(traceback.format_exc(ex))
+            self.execute_module(message_obj)
         else:
             logging.error("Could not parse message correctly")
 
 
 class ExecutorFactory(AbstractFactory):
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, klass=None):
         super(ExecutorFactory, self).__init__(config=config)
         self._command_props = None
         self._event_props = None
+        self._klass = klass if klass else ModuleExecutor
 
     def do_configure(self):
         config_file = "{0}/{1}".format(consts.DEFAULT_SCRIPT_PATH, consts.DEFAULT_COMMAND_FILE)
@@ -199,31 +200,35 @@ class ExecutorFactory(AbstractFactory):
         self._event_props = ConfigParser()
         self._event_props.read(config_file)
 
-    def generate(self, config, message_obj):
-        self.configure()
-        module_obj = ModuleExecutor(config=config, module=message_obj.MODULE)
-        module_obj.set_properties(self._command_props, self._event_props)
+    def generate(self, config, message_obj: AbstractMessage):
+        module_obj = object.__new__(self._klass)
+        module_obj.__init__()
+        if isinstance(module_obj, BaseExecutor):
+            module_obj.set_configuration(config)
+            module_obj.set_module(message_obj.MODULE)
+            module_obj.set_properties(self._command_props, self._event_props)
         return module_obj
 
 
 class BaseExecutionManager(StartableManager):
 
-    def __init__(self, config):
+    def __init__(self, config, klass):
         super(BaseExecutionManager, self).__init__(config=config)
-        self._executor_factory = ExecutorFactory(config=config)
+        self._executor_factory = ExecutorFactory(config=config, klass=klass)
         self._module_config = None
 
     def do_configure(self):
+        self._executor_factory.configure()
         self._module_config = modconfig.get_configuration()
 
-    def get_valid_module(self, message_obj):
-        object_list = [obj for obj in self.get_objects() if isinstance(obj, ModuleExecutor)]
+    def get_valid_module(self, message_obj: AbstractMessage):
+        object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]
         for module_obj in object_list:
             if module_obj.is_valid_module(message_obj):
                 return module_obj
         return None
 
-    def _register_module_object(self, message_obj):
+    def _register_module_object(self, message_obj: AbstractMessage):
         module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
         module_object.set_configuration(self.get_configuration())
         module_object.set_module_configuration(self._module_config)
@@ -233,13 +238,13 @@ class BaseExecutionManager(StartableManager):
 
 class MessageExecutionManager(BaseExecutionManager):
 
-    def __init__(self, config):
-        super(MessageExecutionManager, self).__init__(config=config)
+    def __init__(self, config, klass=ModuleExecutor):
+        super(MessageExecutionManager, self).__init__(config=config, klass=klass)
 
     def register_listener(self, listener):
         listener.set_on_message_received(self.on_handle_message) if isinstance(listener, MessageNotifier) else None
 
-    def on_handle_message(self, obj, message):
+    def on_handle_message(self, obj, message: str):
         try:
             message_object = MessageFactory.generate(message) if message else None
             if (not message_object) or (not self.is_running()):
@@ -247,6 +252,6 @@ class MessageExecutionManager(BaseExecutionManager):
                 return
             module_object = self.get_valid_module(message_object)
             module_object = module_object if module_object else self._register_module_object(message_object)
-            module_object.execute_module(message_object) if module_object else None
+            module_object.submit_task(message_object) if module_object else None
         except Exception as ex:
             logging.exception(ex)
