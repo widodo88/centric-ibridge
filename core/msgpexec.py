@@ -42,6 +42,9 @@ class ShutdownMessage(AbstractMessage):
 
 
 class ProcessExecutor(BaseExecutor):
+    """
+    Process based message execution manager
+    """
 
     def __init__(self, config=None, module=None, workers=4):
         super(ProcessExecutor, self).__init__(config=config, module=module)

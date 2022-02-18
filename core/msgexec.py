@@ -237,6 +237,9 @@ class BaseExecutionManager(StartableManager):
 
 
 class MessageExecutionManager(BaseExecutionManager):
+    """
+    Thread based message execution Manager
+    """
 
     def __init__(self, config, klass=ModuleExecutor):
         super(MessageExecutionManager, self).__init__(config=config, klass=klass)

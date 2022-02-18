@@ -40,12 +40,8 @@ class BridgeServer(BaseAppServer):
         self.add_object(local_transport)
 
         message_listener = MessageNotifier()
-        execution_manager = MessageExecutionManager(cfg)
-        # execution_manager = None
-        # -- DO NOT USE: process based execution were still buggy as hell --
-        if not execution_manager:
-            execution_manager = ProcessMessageExecutionManager(cfg)
-        # -- DO NOT USE: process based execution were still buggy as hell --
+        execution_manager = MessageExecutionManager(cfg) if not self.is_production_mode() \
+            else ProcessMessageExecutionManager(cfg)
         execution_manager.register_listener(message_listener)
         self.add_object(execution_manager)
 
