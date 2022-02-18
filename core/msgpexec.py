@@ -72,6 +72,7 @@ class ProcessExecutor(BaseExecutor):
     def daemonize_process(self):
         _handler = ModuleExecutor(self.get_configuration(), self.get_module(), self._max_processes)
         _handler.set_properties(self.get_command_properties(), self.get_event_properties())
+        _handler.set_module_configuration(self.get_module_configuration())
         _handler.configure()
         _handler.start()
         try:
