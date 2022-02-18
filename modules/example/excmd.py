@@ -34,7 +34,7 @@ class ExampleCommand(CommandProcessor):
 
     def do_configure(self):
         prop = self.get_module_configuration()
-        self._props = dict if self._module not in prop else prop[self._module]
+        self._props = dict() if self._module not in prop else prop[self._module]
 
         config = self.get_configuration()
         base_url = self._props["LOCAL_API_URL"] if "LOCAL_API_URL" in self._props else "http://127.0.0.1:8000"
