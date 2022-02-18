@@ -59,13 +59,13 @@ class MqttTransport(TransportHandler):
         try:
             self.client.unsubscribe(self.get_transport_channel())
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
 
     def _force_disconnect(self):
         try:
             self.client.disconnect()
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
 
     def do_listen(self):
         logging.info("Subscribing {} on {}".format(self.get_transport_address(), self.get_transport_channel()))
@@ -81,6 +81,8 @@ class MqttTransport(TransportHandler):
             self.disconnect()
 
     def connect(self):
+        if not self.client:
+            self.do_configure()
         self.client.connect(self.get_transport_address(), int(self.get_transport_port()))
 
     def disconnect(self):

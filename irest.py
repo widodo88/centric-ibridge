@@ -62,8 +62,8 @@ class RestApp(BaseAppServer):
             mod = __import__(import_modules)
             for cmp in components[1:]:
                 mod = getattr(mod, cmp)
-        except Exception:
-            logging.error(traceback.format_exc())
+        except Exception as ex:
+            logging.exception(ex)
         return mod
 
     def register_rest_modules(self) -> FastAPI:

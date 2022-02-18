@@ -64,7 +64,7 @@ class RESTServerStarter(BaseAppServer):
                 signal.signal(signal.SIGINT, kill_proc)
                 signal.signal(signal.SIGTERM, kill_proc)
             except Exception as ex:
-                logging.error(traceback.format_exc())
+                logging.exception(ex)
 
         restutils.set_stopped(False)
         super(RESTServerStarter, self).do_start()

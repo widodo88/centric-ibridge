@@ -62,8 +62,8 @@ class ExampleCommand(CommandProcessor):
             else:
                 logging.error("Failed to login to Local API Service with error code {0}".format(result.status_code))
 
-        except Exception:
-            logging.error(traceback.format_exc())
+        except Exception as ex:
+            logging.exception(ex)
 
     @mq_command
     def example_command(self, cono=None, dvno=None):
@@ -82,5 +82,5 @@ class ExampleCommand(CommandProcessor):
                 logging.error("Failed to retrieve hello from Local API Service with error code {0}".format(
                     result.status_code))
 
-        except Exception:
-            logging.error(traceback.format_exc())
+        except Exception as ex:
+            logging.exception(ex)

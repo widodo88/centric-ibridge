@@ -50,7 +50,7 @@ class AmqpTransport(TransportHandler):
         try:
             obj.close()
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
 
     def on_message_received(self, message):
         message.channel.basic_ack(message.delivery_tag)
@@ -72,7 +72,7 @@ class AmqpTransport(TransportHandler):
             finally:
                 self.close_object(channel)
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
         finally:
             self.disconnect()
 
