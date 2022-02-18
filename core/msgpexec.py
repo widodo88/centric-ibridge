@@ -19,6 +19,7 @@ import json
 import base64
 import logging
 import multiprocessing as mp
+from queue import Empty
 from core.msgobject import AbstractMessage
 from core.msgexec import BaseExecutor, ModuleExecutor, MessageExecutionManager
 
@@ -82,7 +83,7 @@ class ProcessExecutor(BaseExecutor):
                             break
                         elif isinstance(message_obj, AbstractMessage):
                             _handler.execute_module(message_obj)
-                except:
+                except Empty:
                     time.sleep(0.1)
         finally:
             _handler.stop()
@@ -92,4 +93,3 @@ class ProcessMessageExecutionManager(MessageExecutionManager):
 
     def __init__(self, config):
         super(ProcessMessageExecutionManager, self).__init__(config=config, klass=ProcessExecutor)
-

@@ -27,7 +27,6 @@ from multiprocessing.pool import ThreadPool
 from configparser import ConfigParser
 from jproperties import Properties
 from threading import get_ident
-import multiprocessing as mp
 
 
 class DummyClass(object):
@@ -256,5 +255,3 @@ class MessageExecutionManager(BaseExecutionManager):
             module_object.submit_task(message_object) if module_object else None
         except Exception as ex:
             logging.exception(ex)
-
-
