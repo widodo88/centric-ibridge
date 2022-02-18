@@ -83,10 +83,13 @@ class ProcessExecutor(BaseExecutor):
                 try:
                     message_obj = self._queue.get(True, 0.1)
                     if message_obj:
-                        if isinstance(message_obj, ShutdownMessage):
-                            break
-                        elif isinstance(message_obj, AbstractMessage):
-                            _handler.execute_module(message_obj)
+                        try:
+                            if isinstance(message_obj, ShutdownMessage):
+                                break
+                            elif isinstance(message_obj, AbstractMessage):
+                                _handler.execute_module(message_obj)
+                        except Exception as ex:
+                            logging.exception(ex)
                 except Empty:
                     time.sleep(0.1)
         finally:

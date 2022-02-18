@@ -140,7 +140,7 @@ class BaseExecutor(Startable):
                 module = self._create_object(klass, message_obj)
                 ret_list.append([module, None])
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
         return ret_list
 
 
@@ -168,7 +168,7 @@ class ModuleExecutor(BaseExecutor):
         try:
             module.perform_execute(message_obj, func)
         except Exception as ex:
-            logging.error(traceback.format_exc(ex))
+            logging.exception(ex)
         finally:
             logging.debug("End processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
 
