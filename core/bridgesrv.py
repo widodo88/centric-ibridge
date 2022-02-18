@@ -41,6 +41,7 @@ class BridgeServer(BaseAppServer):
 
         message_listener = MessageNotifier()
         execution_manager = MessageExecutionManager(cfg)
+        # execution_manager = None
         # -- DO NOT USE: process based execution were still buggy as hell --
         if not execution_manager:
             execution_manager = ProcessMessageExecutionManager(cfg)

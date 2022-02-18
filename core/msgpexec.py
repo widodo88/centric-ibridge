@@ -15,18 +15,38 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import time
+import json
+import base64
 import logging
 import multiprocessing as mp
 from core.msgobject import AbstractMessage
-from core.msgexec import ModuleExecutor, MessageExecutionManager
+from core.msgexec import BaseExecutor, ModuleExecutor, MessageExecutionManager
 
 
-class ProcessExecutor(ModuleExecutor):
+class ShutdownMessage(AbstractMessage):
+    def __init__(self):
+        super(ShutdownMessage, self).__init__(msg_type=999)
+
+    def encode(self):
+        if self.PARAMS is None:
+            self.PARAMS = [list(), dict()]
+        adict = {'msgtype': self.message_mode,
+                 'msgid': self.MESSAGE_ID,
+                 'module': self.MODULE,
+                 'submodule': self.SUBMODULE,
+                 'data': self.PARAMS,
+                 'options': self.options.copy()}
+        command_str = json.dumps(adict)
+        return base64.b64encode(command_str.encode("utf-8"))
+
+
+class ProcessExecutor(BaseExecutor):
 
     def __init__(self, config=None, module=None, workers=4):
-        super(ProcessExecutor, self).__init__(config=config, module=module, workers=workers)
+        super(ProcessExecutor, self).__init__(config=config, module=module)
         self._queue = None
         self._process = None
+        self._max_processes = workers
 
     def do_configure(self):
         super(ProcessExecutor, self).do_configure()
@@ -37,6 +57,11 @@ class ProcessExecutor(ModuleExecutor):
         super(ProcessExecutor, self).do_start()
         self._process.start()
 
+    def do_stop(self):
+        super(ProcessExecutor, self).do_stop()
+        self.submit_task(ShutdownMessage())
+        self._process.terminate()
+
     def submit_task(self, message_obj: AbstractMessage):
         if self.has_service(message_obj):
             self._queue.put(message_obj)
@@ -44,13 +69,23 @@ class ProcessExecutor(ModuleExecutor):
             logging.error("Could not parse message correctly")
 
     def daemonize_process(self):
-        while self.is_running():
-            try:
-                message_obj = self._queue.get(True, 1)
-                if message_obj and isinstance(message_obj, AbstractMessage):
-                    self.execute_module(message_obj)
-            except:
-                time.sleep(0.1)
+        _handler = ModuleExecutor(self.get_configuration(), self.get_module(), self._max_processes)
+        _handler.set_properties(self.get_command_properties(), self.get_event_properties())
+        _handler.configure()
+        _handler.start()
+        try:
+            while self.is_running():
+                try:
+                    message_obj = self._queue.get(True, 0.1)
+                    if message_obj:
+                        if isinstance(message_obj, ShutdownMessage):
+                            break
+                        elif isinstance(message_obj, AbstractMessage):
+                            _handler.execute_module(message_obj)
+                except:
+                    time.sleep(0.1)
+        finally:
+            _handler.stop()
 
 
 class ProcessMessageExecutionManager(MessageExecutionManager):
