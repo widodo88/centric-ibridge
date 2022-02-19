@@ -41,7 +41,7 @@ class ExampleRouterPreparer(RESTModulePreparer):
         @app.get("/submit_job")
         async def submit_job(user: UserDB = Depends(current_active_user)):
             message_object = MessageCommand()
-            message_object.set_command("CENTRIC", "EXAMPLE", "get_c8color_specs")
+            message_object.set_message("CENTRIC", "EXAMPLE", "get_c8color_specs")
             await notify_server(message_object)
 
         @execute_async
