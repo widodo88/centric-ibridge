@@ -17,7 +17,7 @@
 import queue
 import time
 import threading
-from core.startable import Startable, StartableListener
+from common.startable import Startable, StartableListener
 
 
 class MessageNotifier(StartableListener):

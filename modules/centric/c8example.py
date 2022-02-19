@@ -14,11 +14,10 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import traceback
 import logging
 from common import consts
-from core.prochandler import CommandProcessor
-from core.msgobject import mq_command
+from common.prochandler import CommandProcessor
+from common.msgobject import mq_command
 from utils.c8client import C8WebClient
 from utils.httpclient import HttpClient
 
