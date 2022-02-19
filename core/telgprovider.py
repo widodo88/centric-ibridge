@@ -18,7 +18,7 @@ import traceback
 from telegram.ext import Updater
 from threading import RLock
 from common import consts
-from core.startable import Startable, LifeCycleManager
+from common.startable import Startable, LifeCycleManager
 
 
 class TelegramProvider(Startable):
