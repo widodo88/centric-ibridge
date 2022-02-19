@@ -17,7 +17,6 @@
 import logging
 from core.baseappsrv import BaseAppServer
 from core.redisprovider import RedisPreparer
-from core.telgprovider import TelegramPreparer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
@@ -34,7 +33,6 @@ class BridgeServer(BaseAppServer):
     def do_configure(self):
         cfg = self.get_configuration()
         RedisPreparer.prepare_redis(cfg, self)
-        TelegramPreparer.prepare_telegram(cfg, self)
         transport_listener = self.configure_transport()
         TransportPreparer.prepare_transports(cfg, transport_listener, self)
 
@@ -100,3 +98,4 @@ class BridgeServer(BaseAppServer):
         shutdown_monitor = self.get_object(ShutdownHookMonitor)
         shutdown_monitor = ShutdownHookMonitor.get_default_instance() if not shutdown_monitor else shutdown_monitor
         shutdown_monitor.join() if shutdown_monitor else None
+

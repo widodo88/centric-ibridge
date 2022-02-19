@@ -26,7 +26,6 @@ from starlette.staticfiles import StaticFiles
 from core.baseappsrv import BaseAppServer
 from core.restprep import RESTModulePreparer
 from core.redisprovider import RedisPreparer
-from core.telgprovider import TelegramPreparer
 from logging.handlers import TimedRotatingFileHandler
 
 
@@ -43,7 +42,6 @@ class RestApp(BaseAppServer):
         consts.IS_PRODUCTION_MODE = mode.lower() == "true"
         consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
         RedisPreparer.prepare_redis(config, self)
-        TelegramPreparer.prepare_telegram(config, self)
         self.configure_rest_app()
         self.register_rest_modules()
 
