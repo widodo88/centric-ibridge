@@ -43,7 +43,7 @@ class RestApp(BaseAppServer):
         consts.IS_PRODUCTION_MODE = mode.lower() == "true"
         consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
         RedisPreparer.prepare_redis(config, self)
-        TelegramPreparer.prepare_telegram(cfg, self)
+        TelegramPreparer.prepare_telegram(config, self)
         self.configure_rest_app()
         self.register_rest_modules()
 
