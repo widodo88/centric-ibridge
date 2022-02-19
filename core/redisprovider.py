@@ -75,6 +75,7 @@ class RedisPreparer(object):
         redis_enabled = True if redis_enabled.lower() == "true" else False
         if redis_enabled:
             redis_instance = RedisProvider.get_default_instance()
-            redis_instance.set_configuration(cfg)
-            redis_instance.service_enabled = True
-            server_holder.add_object(redis_instance)
+            if not redis_instance.is_configured():
+                redis_instance.set_configuration(cfg)
+                redis_instance.service_enabled = True
+                server_holder.add_object(redis_instance)
