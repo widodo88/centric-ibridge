@@ -15,10 +15,9 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
-import traceback
 import urllib.parse
-from core.prochandler import CommandProcessor
-from core.msgobject import mq_command
+from common.prochandler import CommandProcessor
+from common.msgobject import mq_command
 from utils.httpclient import HttpClient
 from utils.basehttpclient import OAUTH2_AUTH
 from utils.c8client import C8WebClient

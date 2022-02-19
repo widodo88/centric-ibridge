@@ -14,10 +14,9 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import traceback
 import logging
-from core.prochandler import CommandProcessor
-from core.msgobject import mq_event
+from common.prochandler import CommandProcessor
+from common.msgobject import mq_event
 from utils.krclient import KRWebClient
 from common import consts
 from solr.core import SolrConnection

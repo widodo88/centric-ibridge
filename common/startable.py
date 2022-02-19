@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
-from core.configurable import Configurable
+from common.configurable import Configurable
 from threading import RLock
 
 
