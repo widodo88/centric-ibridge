@@ -20,7 +20,7 @@ import base64
 import logging
 import multiprocessing as mp
 from queue import Empty
-from core.msgobject import AbstractMessage
+from common.msgobject import AbstractMessage
 from core.msgexec import BaseExecutor, ModuleExecutor, MessageExecutionManager
 
 
