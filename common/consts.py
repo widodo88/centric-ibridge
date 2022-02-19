@@ -45,9 +45,6 @@ RESTAPI_LOG_FILE = "restapi.log.file"
 REDIS_ENABLED = "redis.enabled"
 REDIS_URL = "redis.url"
 
-TELEGRAM_ENABLED = "telegram.enabled"
-TELEGRAM_TOKEN = "telegram.token"
-
 MQ_TRANSPORT_COUNT = "mq.transport.count"
 MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
 MQ_TRANSPORT_ADDR = "mq.transport.{0}.address"
