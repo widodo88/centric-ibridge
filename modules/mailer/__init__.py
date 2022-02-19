@@ -20,8 +20,8 @@ import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from core.msgobject import mq_command
-from core.prochandler import CommandProcessor
+from common.msgobject import mq_command
+from common.prochandler import CommandProcessor
 
 
 class MailSender(CommandProcessor):
