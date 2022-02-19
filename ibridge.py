@@ -25,7 +25,7 @@ from multiprocessing_logging import install_mp_handler
 from common import consts
 from core.baseappsrv import BaseAppServer
 from core.shutdn import ShutdownHookMonitor
-from core.msgobject import MessageEvent, MessageCommand
+from common.msgobject import MessageEvent, MessageCommand
 
 
 class StoreDictKeyPair(argparse.Action):

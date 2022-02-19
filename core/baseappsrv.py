@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 from common import consts
-from core.startable import LifeCycleManager
+from common.startable import LifeCycleManager
 from core.transhandler import TransportMessageNotifier
 
 

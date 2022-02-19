@@ -15,8 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 from threading import RLock
-from core.configurable import Configurable
-from fastapi import FastAPI, APIRouter
+from common.configurable import Configurable
+from fastapi import FastAPI
 
 
 class RESTModulePreparer(Configurable):

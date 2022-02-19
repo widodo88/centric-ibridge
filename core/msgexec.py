@@ -15,14 +15,13 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
-import traceback
 from common import consts
 from common import modconfig
 from core.objfactory import AbstractFactory
-from core.startable import Startable, StartableManager
-from core.msgobject import MessageFactory, MessageEvent, AbstractMessage
+from common.startable import Startable, StartableManager
+from common.msgobject import MessageFactory, MessageEvent, AbstractMessage
 from core.msghandler import MessageNotifier
-from core.prochandler import CommandProcessor
+from common.prochandler import CommandProcessor
 from multiprocessing.pool import ThreadPool
 from configparser import ConfigParser
 from jproperties import Properties

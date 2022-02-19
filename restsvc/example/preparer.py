@@ -18,7 +18,7 @@ from fastapi import FastAPI, Depends
 from core.restprep import RESTModulePreparer
 from restsvc.users.model import UserDB
 from restsvc.users.activeusr import current_active_user
-from core.msgobject import MessageCommand
+from common.msgobject import MessageCommand
 from utils.restutils import execute_async
 from utils import transhelper
 

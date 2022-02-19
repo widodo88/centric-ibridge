@@ -15,8 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
-from core import msgobject
-from core.configurable import Configurable
+from common import msgobject
+from common.configurable import Configurable
 
 
 class BaseCommandProcessor(Configurable):

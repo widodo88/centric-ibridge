@@ -18,7 +18,7 @@ from threading import RLock
 from redis import Redis
 from redis.connection import Connection, ConnectionPool
 from common import consts
-from core.startable import Startable, LifeCycleManager
+from common.startable import Startable, LifeCycleManager
 
 
 class RedisProvider(Startable):
