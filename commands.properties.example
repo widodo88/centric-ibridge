@@ -1,6 +1,22 @@
+# ============================================================================
+#
+# 		Centric PLM Integration Bridge Command properties file
+# 		------------------------------------------------------
+#
+#       This version of the command.properties file is
+#       intended for use with:
+#
+#           * Prepared for Linux OS Deployment
+#
+# 	Copyright (C) Busana Apparel Group 2022. All rights reserved.
+#   This module is part of Centric PLM Integration Bridge and is released under
+#   the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+#------------------------------------------------------------------------
 
-# MODULE@SUBMODULE=full.class.name
-
+# List of available modules:
+#       format: <MODULE>@<SUBMODULE>=implementation.full.class.name.and.path
+# example:
+#  MODULE@EXAMPLE=modules.example.excmd.ExampleCommand
 MODULE@EXAMPLE=modules.example.excmd.ExampleCommand
 CENTRIC@EXAMPLE=modules.centric.c8example.C8Example
 
