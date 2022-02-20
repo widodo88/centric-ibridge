@@ -26,9 +26,8 @@ class HREmpUpdateSearchDB(CommandProcessor):
 
     def __init__(self):
         super(HREmpUpdateSearchDB, self).__init__()
-        prop = self.get_module_configuration()
         self._module = 'TASM@EMPSEARCHDB'
-        self._props = prop[self._module] if self._module in prop else dict()
+        self._props = None
         self._rest_service = None
         self._solr_connection = None
 

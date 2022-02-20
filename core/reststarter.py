@@ -38,7 +38,7 @@ class RESTServerStarter(BaseAppServer):
     def do_start(self):
         # only enable this on production mode in linux
         if self.is_production_mode() and oshelper.is_linux():
-            pid_file = consts.DEFAULT_SCRIPT_PATH + '/data/temp/irest.pid'
+            pid_file = "{0}/data/temp/irest.pid".format(consts.DEFAULT_SCRIPT_PATH)
             os.makedirs(os.path.dirname(pid_file), exist_ok=True)
             run_args = [
                 consts.DEFAULT_SCRIPT_PATH + '/' +

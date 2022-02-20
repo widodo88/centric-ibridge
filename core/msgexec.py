@@ -15,6 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import logging
+import traceback
+
 from common import consts
 from common import modconfig
 from core.objfactory import AbstractFactory
@@ -217,8 +219,11 @@ class BaseExecutionManager(StartableManager):
         self._module_config = None
 
     def do_configure(self):
-        self._executor_factory.configure()
-        self._module_config = modconfig.get_configuration()
+        try:
+            self._executor_factory.configure()
+            self._module_config = modconfig.get_configuration()
+        except:
+            logging.error(traceback.format_exc())
 
     def get_valid_module(self, message_obj: AbstractMessage):
         object_list = [obj for obj in self.get_objects() if isinstance(obj, BaseExecutor)]

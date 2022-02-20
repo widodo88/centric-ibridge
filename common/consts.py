@@ -58,7 +58,7 @@ MQ_TRANSPORT_EXCHANGE = "mq.transport.{0}.exchange"
 
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
-LOG_LEVEL_ERROR = "WARNING"
+LOG_LEVEL_ERROR = "ERROR"
 LOG_LEVEL_DEBUG = "DEBUG"
 LOG_LEVEL_CRITICAL = "CRITICAL"
 
@@ -77,6 +77,10 @@ DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_FILE = "{0}/log/ibridge.log".format(DEFAULT_SCRIPT_PATH)
 DEFAULT_RESTAPI_LOG_FILE = "{0}/log/irest.log".format(DEFAULT_SCRIPT_PATH)
 DEFAULT_LOG_LEVEL = log_level[LOG_LEVEL_INFO]
+DEFAULT_DATA_PATH = ""
+DEFAULT_TMP_PATH = "/tmp"
+DEFAULT_LOCALTMP_PATH = ""
+
 
 DEFAULT_SHUTDOWN_ADDR = "127.0.0.1"
 DEFAULT_SHUTDOWN_PORT = 9999
@@ -107,3 +111,33 @@ SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
 BRIDGE_SERVICE = SERVICES_AVAILABLE[0][0]
 
 IS_PRODUCTION_MODE = False
+
+
+def prepare_path(reprepare=True, echo=False, log_info=False):
+    global DEFAULT_LOG_FILE
+    global DEFAULT_SCRIPT_PATH
+    global DEFAULT_DATA_PATH
+    global DEFAULT_LOCALTMP_PATH
+    global DEFAULT_TMP_PATH
+    global UNIX_SOCKET_FILE
+
+    if reprepare:
+        DEFAULT_LOG_FILE = "{0}/log/ibridge.log".format(DEFAULT_SCRIPT_PATH)
+        DEFAULT_DATA_PATH = "{0}/data".format(DEFAULT_SCRIPT_PATH)
+        DEFAULT_LOCALTMP_PATH = "{0}/data/tmp".format(DEFAULT_SCRIPT_PATH)
+        DEFAULT_TMP_PATH = "/tmp"
+        UNIX_SOCKET_FILE = "{0}/ibridge.sock".format(DEFAULT_TMP_PATH)
+    if echo:
+        print("-------------------------------------------------------")
+        print("HOME DIRECTORY: {0}".format(DEFAULT_SCRIPT_PATH))
+        print("DATA DIRECTORY: {0}".format(DEFAULT_DATA_PATH))
+        print("LOCAL TMP DIRECTORY: {0}".format(DEFAULT_LOCALTMP_PATH))
+        print("LOCAL LOG FILE: {0}".format(DEFAULT_LOG_FILE))
+        print("UNIX SOCK FILE: {0}".format(UNIX_SOCKET_FILE))
+        print("-------------------------------------------------------")
+    if log_info:
+        logging.info("HOME DIRECTORY: {0}".format(DEFAULT_SCRIPT_PATH))
+        logging.info("DATA DIRECTORY: {0}".format(DEFAULT_DATA_PATH))
+        logging.info("LOCAL TMP DIRECTORY: {0}".format(DEFAULT_LOCALTMP_PATH))
+        logging.info("LOCAL LOG FILE: {0}".format(DEFAULT_LOG_FILE))
+        logging.info("UNIX SOCK FILE: {0}".format(UNIX_SOCKET_FILE))

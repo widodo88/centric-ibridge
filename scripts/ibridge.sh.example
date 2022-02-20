@@ -20,18 +20,18 @@ APPROOT=/opt/centric-ibridge/
 
 DEF_USR=bagapp
 
-test -f $DAEMON || exit 0
+# test -f $DAEMON || exit 0
 
 . /lib/lsb/init-functions
 
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 start() {
-    su - $DEF_USR -c "/$APPROOT/bridge start" >>/dev/null 2>&1 &
+    su - $DEF_USR -c "$APPROOT/bridge start" >>/dev/null 2>&1 &
 }
 
 stop() {
-    su - $DEF_USR -c "/$APPROOT/bridge stop" >>/dev/null 2>&1 &
+    su - $DEF_USR -c "$APPROOT/bridge stop" >>/dev/null 2>&1 &
 }
 
 

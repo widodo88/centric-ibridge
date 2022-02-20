@@ -94,9 +94,9 @@ class BridgeApp(BaseAppServer):
         app_server_klass = self._get_klass(app_server_klass_name)
         if not issubclass(app_server_klass, BaseAppServer):
             return
-        server_instance = object.__new__(app_server_klass)
-        server_instance.__init__(config=self.get_configuration(), standalone=standalone)
-        server_instance.set_transport_listener(self.get_transport_listener())
+        server_instance = app_server_klass.get_default_instance()
+        server_instance.set_configuration(self.get_configuration())
+        server_instance.standalone = standalone
         return server_instance
 
     def configure_services(self):
@@ -106,6 +106,7 @@ class BridgeApp(BaseAppServer):
 
     def do_start_command(self, args):
         logging.info(self.parser.description)
+        consts.prepare_path(False, False, True)
         print("Starting server", end=" ...")
         self.add_object(self.configure_shutdown_monitor())
         self.configure_services()
@@ -121,8 +122,11 @@ class BridgeApp(BaseAppServer):
             print("Unable to shutdown \n\nReason: {0}".format(ex))
 
     def do_alt_stop_command(self, args):
+        app_server_klass = self._get_klass(consts.BRIDGE_SERVICE)
+        if not issubclass(app_server_klass, BaseAppServer):
+            return
         print("Stopping ", end=" ...")
-        bridge_server = BridgeServer.get_default_instance()
+        bridge_server = app_server_klass.get_default_instance()
         bridge_server.set_configuration(self.get_configuration())
         try:
             bridge_server.alt_shutdown_signal()
@@ -229,7 +233,8 @@ def main(argv=None):
     if argv:
         assert isinstance(argv, list)
         sys.argv = argv
-    config = dotenv_values(".env")
+    consts.prepare_path()
+    config = dotenv_values("{0}/.env".format(consts.DEFAULT_SCRIPT_PATH))
     configure_logging(config)
     main_app = BridgeApp()
     main_app.set_configuration(config)

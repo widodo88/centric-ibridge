@@ -79,7 +79,7 @@ class ProcessExecutor(BaseExecutor):
         _handler.configure()
         _handler.start()
         try:
-            while self.is_running():
+            while True:
                 try:
                     message_obj = self._queue.get(True, 0.1)
                     if message_obj:

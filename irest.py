@@ -100,9 +100,9 @@ def configure_logging(config):
 
 
 def create_app():
-    config = dotenv_values(".env")
+    consts.prepare_path()
+    config = dotenv_values("{0}/.env".format(consts.DEFAULT_SCRIPT_PATH))
     configure_logging(config)
-
     rest_app_instance = RestApp.get_default_instance()
     rest_app_instance.set_configuration(config)
     return rest_app_instance()

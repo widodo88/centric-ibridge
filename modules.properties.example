@@ -1,4 +1,19 @@
+# ============================================================================
+#
+# 		Centric PLM Integration Bridge modul wise properties file
+# 		---------------------------------------------------------
+#
+#       This version of the command.properties file is
+#       intended for use with:
+#
+#           * Prepared for Linux OS Deployment
+#
+# 	Copyright (C) Busana Apparel Group 2022. All rights reserved.
+#   This module is part of Centric PLM Integration Bridge and is released under
+#   the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+#------------------------------------------------------------------------
 
+# List of properties required by modules:
 [MODULE@EXAMPLE]
 LOCAL_API_URL=http://127.0.0.1:8000
 LOCAL_API_USER= <<username>>
