@@ -19,6 +19,7 @@ import json
 import base64
 import logging
 import multiprocessing as mp
+from multiprocessing.pool import Pool
 from queue import Empty
 from common.msgobject import AbstractMessage
 from core.msgexec import BaseExecutor, ModuleExecutor, MessageExecutionManager
@@ -41,28 +42,37 @@ class ShutdownMessage(AbstractMessage):
         return base64.b64encode(command_str.encode("utf-8"))
 
 
-class ProcessExecutor(BaseExecutor):
+class ProcessExecutor(ModuleExecutor):
+
+    def __init__(self, config=None, module=None, workers=16):
+        super(ProcessExecutor, self).__init__(config=config, module=module, workers=workers)
+
+    def do_start(self):
+        self._pool = Pool(processes=self._max_processes)
+
+
+class ProcessThreadExecutor(BaseExecutor):
     """
     Process based message execution manager
     """
 
     def __init__(self, config=None, module=None, workers=4):
-        super(ProcessExecutor, self).__init__(config=config, module=module)
+        super(ProcessThreadExecutor, self).__init__(config=config, module=module)
         self._queue = None
         self._process = None
         self._max_processes = workers
 
     def do_configure(self):
-        super(ProcessExecutor, self).do_configure()
+        super(ProcessThreadExecutor, self).do_configure()
         self._queue = mp.Queue()
         self._process = mp.Process(target=self.daemonize_process)
 
     def do_start(self):
-        super(ProcessExecutor, self).do_start()
+        super(ProcessThreadExecutor, self).do_start()
         self._process.start()
 
     def do_stop(self):
-        super(ProcessExecutor, self).do_stop()
+        super(ProcessThreadExecutor, self).do_stop()
         self.submit_task(ShutdownMessage())
         self._process.terminate()
 
@@ -99,4 +109,4 @@ class ProcessExecutor(BaseExecutor):
 class ProcessMessageExecutionManager(MessageExecutionManager):
 
     def __init__(self, config):
-        super(ProcessMessageExecutionManager, self).__init__(config=config, klass=ProcessExecutor)
+        super(ProcessMessageExecutionManager, self).__init__(config=config, klass=ProcessThreadExecutor)
