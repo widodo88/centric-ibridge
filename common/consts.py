@@ -17,6 +17,7 @@
 import logging
 
 PRODUCTION_MODE = "production.mode"
+USE_GLOBAL_POOL = "global.pool"
 
 SHUTDOWN_ADDR = "shutdown.addr"
 SHUTDOWN_PORT = "shutdown.port"
@@ -58,7 +59,7 @@ MQ_TRANSPORT_EXCHANGE = "mq.transport.{0}.exchange"
 
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
-LOG_LEVEL_ERROR = "ERROR"
+LOG_LEVEL_ERROR = "WARNING"
 LOG_LEVEL_DEBUG = "DEBUG"
 LOG_LEVEL_CRITICAL = "CRITICAL"
 

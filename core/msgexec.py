@@ -58,7 +58,7 @@ class BaseExecutor(Startable):
         return self._module
 
     def is_valid_module(self, message_obj):
-        return message_obj.MODULE == self._module
+        return (message_obj.MODULE == self._module) or (self._module == '*')
 
     def get_command_properties(self):
         return self._command_props
@@ -191,6 +191,7 @@ class ExecutorFactory(AbstractFactory):
         self._command_props = None
         self._event_props = None
         self._klass = klass if klass else ModuleExecutor
+        self._simple_model = False
 
     def do_configure(self):
         config_file = "{0}/{1}".format(consts.DEFAULT_SCRIPT_PATH, consts.DEFAULT_COMMAND_FILE)
@@ -205,10 +206,19 @@ class ExecutorFactory(AbstractFactory):
         module_obj = object.__new__(self._klass)
         module_obj.__init__()
         if isinstance(module_obj, BaseExecutor):
+            module_name = '*' if self._simple_model else message_obj.MODULE
             module_obj.set_configuration(config)
-            module_obj.set_module(message_obj.MODULE)
+            module_obj.set_module(module_name)
             module_obj.set_properties(self._command_props, self._event_props)
         return module_obj
+
+    @property
+    def simple_model(self) -> bool:
+        return self._simple_model
+
+    @simple_model.setter
+    def simple_model(self, value: bool) -> None:
+        self._simple_model = value
 
 
 class BaseExecutionManager(StartableManager):
@@ -238,6 +248,14 @@ class BaseExecutionManager(StartableManager):
         module_object.set_module_configuration(self._module_config)
         self.add_object(module_object if module_object else None)
         return module_object
+
+    @property
+    def simple_model(self) -> bool:
+        return self._executor_factory.simple_model
+
+    @simple_model.setter
+    def simple_model(self, value: bool) -> None:
+        self._executor_factory.simple_model = value
 
 
 class MessageExecutionManager(BaseExecutionManager):

@@ -21,8 +21,9 @@ from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
 from core.msgexec import MessageExecutionManager
-from core.msgpexec import ProcessMessageExecutionManager
+from core.msgpexec import ProcessMessageExecutionManager, ProcessExecutor
 from utils import transhelper
+from common import consts
 
 
 class BridgeServer(BaseAppServer):
@@ -42,8 +43,17 @@ class BridgeServer(BaseAppServer):
         self.add_object(local_transport)
 
         message_listener = MessageNotifier()
-        execution_manager = MessageExecutionManager(cfg) if not self.is_production_mode() \
-            else ProcessMessageExecutionManager(cfg)
+        global_pool = self.get_config_value(consts.USE_GLOBAL_POOL, "false")
+        global_pool = global_pool.lower() == "true"
+        if not self.is_production_mode():
+            execution_manager = MessageExecutionManager(cfg)
+            execution_manager.simple_model = global_pool
+        else:
+            if global_pool:
+                execution_manager = MessageExecutionManager(cfg, ProcessExecutor)
+                execution_manager.simple_model = global_pool
+            else:
+                execution_manager = ProcessMessageExecutionManager(cfg)
         execution_manager.register_listener(message_listener)
         self.add_object(execution_manager)
 
