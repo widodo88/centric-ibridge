@@ -70,12 +70,6 @@ class BaseExecutor(Startable):
         self._command_props = cmd_props
         self._event_props = event_props
 
-    def has_service(self, message_obj: AbstractMessage):
-        props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
-            else self.get_command_properties()
-        return props.has_section(message_obj.get_module_id()) if isinstance(message_obj, MessageEvent) \
-            else message_obj.get_module_id() in props.keys()
-
     def submit_task(self, message_obj):
         raise NotImplementedError()
 
@@ -178,10 +172,7 @@ class ModuleExecutor(BaseExecutor):
             self.assign_task(module, message_obj, str_func)
 
     def submit_task(self, message_obj: AbstractMessage):
-        if self.has_service(message_obj):
-            self.execute_module(message_obj)
-        else:
-            logging.error("Could not parse message correctly")
+        self.execute_module(message_obj)
 
 
 class ExecutorFactory(AbstractFactory):
@@ -192,6 +183,7 @@ class ExecutorFactory(AbstractFactory):
         self._event_props = None
         self._klass = klass if klass else ModuleExecutor
         self._simple_model = False
+        self._available_services = []
 
     def do_configure(self):
         config_file = "{0}/{1}".format(consts.DEFAULT_SCRIPT_PATH, consts.DEFAULT_COMMAND_FILE)
@@ -201,6 +193,16 @@ class ExecutorFactory(AbstractFactory):
         config_file = "{0}/{1}".format(consts.DEFAULT_SCRIPT_PATH, consts.DEFAULT_EVENT_FILE)
         self._event_props = ConfigParser()
         self._event_props.read(config_file)
+
+    def valid_service(self, message_obj: AbstractMessage):
+        module_id = message_obj.get_module_id()
+        is_available = module_id in self._available_services
+        if not is_available:
+            props = self._event_props if isinstance(message_obj, MessageEvent) else self._command_props
+            is_available = props.has_section(module_id) if isinstance(message_obj, MessageEvent) \
+                else module_id in props.keys()
+            self._available_services.append(module_id) if is_available else None
+        return is_available
 
     def generate(self, config, message_obj: AbstractMessage):
         module_obj = object.__new__(self._klass)
@@ -243,10 +245,12 @@ class BaseExecutionManager(StartableManager):
         return None
 
     def _register_module_object(self, message_obj: AbstractMessage):
-        module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
-        module_object.set_configuration(self.get_configuration())
-        module_object.set_module_configuration(self._module_config)
-        self.add_object(module_object if module_object else None)
+        module_object = None
+        if self._executor_factory.valid_service(message_obj):
+            module_object = self._executor_factory.generate(self.get_configuration(), message_obj)
+            module_object.set_configuration(self.get_configuration())
+            module_object.set_module_configuration(self._module_config)
+            self.add_object(module_object) if module_object else None
         return module_object
 
     @property

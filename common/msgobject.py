@@ -164,10 +164,11 @@ class MessageEvent(AbstractMessage):
 
 class MessageFactory(BaseMessage):
 
+    klass_list = [MessageCommand, MessageEvent]
+
     @classmethod
     def get_class(cls, msg_type):
-        klass_list = [MessageCommand, MessageEvent]
-        return klass_list[msg_type] if msg_type < len(klass_list) else None
+        return cls.klass_list[msg_type] if msg_type < len(cls.klass_list) else None
 
     @classmethod
     def instantiate(cls, klass):

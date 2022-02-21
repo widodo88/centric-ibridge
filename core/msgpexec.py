@@ -77,10 +77,7 @@ class ProcessThreadExecutor(BaseExecutor):
         self._process.terminate()
 
     def submit_task(self, message_obj: AbstractMessage):
-        if self.has_service(message_obj):
-            self._queue.put(message_obj)
-        else:
-            logging.error("Could not parse message correctly")
+        self._queue.put(message_obj)
 
     def daemonize_process(self):
         _handler = ModuleExecutor(self.get_configuration(), self.get_module(), self._max_processes)
