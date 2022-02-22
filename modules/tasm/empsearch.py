@@ -51,8 +51,13 @@ class HREmpUpdateSearchDB(CommandProcessor):
     def get_employee_info(self, cono, emid):
         module = self._rest_service.create_module(self._props['BASE_MODULE'])
         command = module.create_command('getEmpSearchableInfo')
-        result = command.get(cono=cono, emid=emid)
-        return result.json()
+        response = command.get(cono=cono, emid=emid)
+        status_code = response.status_code
+        try:
+            output = response.json() if status_code == 200 else dict()
+        finally:
+            response.close()
+        return output
 
     def delete_search_db_record(self, info):
         if not self._solr_connection:
@@ -81,4 +86,5 @@ class HREmpUpdateSearchDB(CommandProcessor):
         except Exception as ex:
             logging.exception(ex)
         finally:
+            self._solr_connection.close()
             logging.info("End Update Search for EMID: {0}".format(emid))
