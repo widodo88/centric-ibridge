@@ -37,17 +37,10 @@ class TransportHandler(MessageHandler):
         self._transport_password = None
         self._transport_channel = None
         self._transport_client_id = None
+        self._transport_adapter = None
 
     def do_listen(self):
         pass
-
-    def do_configure(self):
-        self._transport_address = self.get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
-        self._transport_port = self.get_config_value(consts.MQ_TRANSPORT_PORT, None)
-        self._transport_username = self.get_config_value(consts.MQ_TRANSPORT_USER, None)
-        self._transport_password = self.get_config_value(consts.MQ_TRANSPORT_PASS, None)
-        self._transport_channel = self.get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
-        self._transport_client_id = self.get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
 
     def do_start(self):
         if self.is_enabled():
@@ -83,6 +76,9 @@ class TransportHandler(MessageHandler):
     def get_transport_client_id(self):
         return self._transport_client_id
 
+    def get_transport_adapter(self):
+        return self._transport_adapter
+
     def set_transport_index(self, index):
         self._transport_index = index
 
@@ -104,6 +100,9 @@ class TransportHandler(MessageHandler):
     def set_transport_client_id(self, client_id):
         self._transport_client_id = client_id
 
+    def set_transport_adapter(self):
+        return self._transport_adapter
+
     def get_config_value(self, key, def_value):
         config_key = str(key).format(self._transport_index)
         return super(TransportHandler, self).get_config_value(config_key, def_value)
@@ -119,3 +118,12 @@ class TransportHandler(MessageHandler):
 
     def notify_server(self, message_obj):
         raise NotImplementedError("notify_server not implemented here")
+
+    def setup_transport(self):
+        self._transport_address = self.get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")
+        self._transport_port = self.get_config_value(consts.MQ_TRANSPORT_PORT, None)
+        self._transport_username = self.get_config_value(consts.MQ_TRANSPORT_USER, None)
+        self._transport_password = self.get_config_value(consts.MQ_TRANSPORT_PASS, None)
+        self._transport_channel = self.get_config_value(consts.MQ_TRANSPORT_CHANNEL, None)
+        self._transport_client_id = self.get_config_value(consts.MQ_TRANSPORT_CLIENTID, None)
+        self._transport_adapter = self.get_config_value(consts.MQ_TRANSPORT_ADAPTER, None)

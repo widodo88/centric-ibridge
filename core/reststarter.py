@@ -24,7 +24,6 @@ import psutil
 from common import consts
 from utils import restutils, oshelper
 from core.baseappsrv import BaseAppServer
-import traceback
 
 
 class RESTServerStarter(BaseAppServer):

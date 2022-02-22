@@ -16,13 +16,14 @@
 
 import logging
 import traceback
-
 from common import consts
 from common import modconfig
 from core.objfactory import AbstractFactory
+from common.objloader import ObjectLoader, ObjectCreator
 from common.startable import Startable, StartableManager
-from common.msgobject import MessageFactory, MessageEvent, AbstractMessage
-from core.msghandler import MessageNotifier
+from common.msgobject import MessageEvent, AbstractMessage
+from core.msghandler import MessageReceiver
+from core.msgfactory import MessageFactory
 from common.prochandler import CommandProcessor
 from multiprocessing.pool import ThreadPool
 from configparser import ConfigParser
@@ -34,15 +35,10 @@ class DummyClass(object):
     pass
 
 
-class BaseExecutor(Startable):
+class ExecutorLoader(ObjectLoader):
 
-    def __init__(self, config=None, module_config=None, module=None):
-        super(BaseExecutor, self).__init__(config=config)
-        self._collection = dict()
-        self._module = module
-        self._module_config = module_config
-        self._command_props = None
-        self._event_props = None
+    def __init__(self):
+        super(ExecutorLoader, self).__init__()
         self._module_dict = dict()
 
     def _get_klass_from_cache(self, class_name):
@@ -50,6 +46,42 @@ class BaseExecutor(Startable):
 
     def _register_klass_to_cache(self, class_name, mod):
         self._module_dict[class_name] = mod
+
+    def _validate_classname(self, class_name, props=None):
+        return class_name if isinstance(class_name, str) \
+            else props.properties[class_name.get_module_id()]
+
+    def _get_existing_klass(self, class_name: str) -> object:
+        return self._get_klass_from_cache(class_name)
+
+    def _verify_klass(self, klass, class_name):
+        retval = klass if issubclass(klass, CommandProcessor) else None
+        self._register_klass_to_cache(class_name, retval) if retval else None
+        return retval
+
+
+class ExecutorCreator(ObjectCreator):
+
+    def __init__(self):
+        super(ExecutorCreator, self).__init__()
+        self._collection = dict()
+
+    def _configure_instance(self, klass, instance, *args, **kwargs):
+        if klass.__name__ not in self._collection:
+            self._collection[klass.__name__] = DummyClass()
+        parent = self._collection[klass.__name__]
+        instance.set_parent(parent)
+        return instance
+
+
+class BaseExecutor(Startable, ExecutorLoader, ExecutorCreator):
+
+    def __init__(self, config=None, module_config=None, module=None):
+        super(BaseExecutor, self).__init__(config=config)
+        self._module = module
+        self._module_config = module_config
+        self._command_props = None
+        self._event_props = None
 
     def set_module(self, module):
         self._module = module
@@ -79,43 +111,14 @@ class BaseExecutor(Startable):
     def get_module_configuration(self):
         return self._module_config
 
-    @staticmethod
-    def _get_klass_module(msg_obj: AbstractMessage, props):
-        class_name = msg_obj if isinstance(msg_obj, str) \
-            else props.properties[msg_obj.get_module_id()]
-        components = class_name.split(".")
-        return components, ".".join(components[:-1]), class_name
-
-    def _get_klass(self, msg_obj: AbstractMessage, props):
-        components, import_modules, class_name = self._get_klass_module(msg_obj, props)
-        logging.debug("BaseExecutor.get_klass: {0} output {1} - {2}".format(msg_obj, components, import_modules))
-        mod = self._get_klass_from_cache(class_name)
-        if not mod:
-            try:
-                mod = __import__(import_modules)
-                for cmp in components[1:]:
-                    mod = getattr(mod, cmp)
-                mod = mod if issubclass(mod, CommandProcessor) else None
-                self._register_klass_to_cache(class_name, mod) if mod else None
-            except Exception as ex:
-                logging.error(ex)
-        return mod
-
-    def _create_object(self, klass, message_obj: AbstractMessage):
-        if not klass:
-            return None
-        if klass.__name__ not in self._collection:
-            self._collection[klass.__name__] = DummyClass()
-        parent = self._collection[klass.__name__]
-        module = object.__new__(klass)
-        module.__init__()
-        module.set_configuration(self.get_configuration())
-        module.set_module_configuration(self.get_module_configuration())
-        module.set_parent(parent)
-        module.set_message_object(message_obj)
-        module.configure()
-        logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, module))
-        return module
+    def _configure_instance(self, klass, instance, *args, **kwargs):
+        super(BaseExecutor, self)._configure_instance(klass, instance, *args, **kwargs)
+        instance.set_configuration(self.get_configuration())
+        instance.set_module_configuration(self.get_module_configuration())
+        instance.set_message_object(args[0])
+        instance.configure()
+        logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, instance))
+        return instance
 
     def _collect_object_module(self, message_obj: AbstractMessage) -> [[object, str]]:
         props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
@@ -127,12 +130,12 @@ class BaseExecutor(Startable):
                 str_mod = None if message_obj.EVENT not in section_props else section_props[message_obj.EVENT]
                 list_mod = [str_item.split(":") for str_item in (str_mod.split(",") if str_mod else [])]
                 for str_mod, str_func in list_mod:
-                    klass = self._get_klass(str_mod, section_props)
-                    module = self._create_object(klass, message_obj)
+                    klass = self._get_klass(str_mod, props=section_props)
+                    module = self._create_instance(klass, message_obj)
                     ret_list.append([module, str_func])
             else:
-                klass = self._get_klass(message_obj, props)
-                module = self._create_object(klass, message_obj)
+                klass = self._get_klass(message_obj, props=props)
+                module = self._create_instance(klass, message_obj)
                 ret_list.append([module, None])
         except Exception as ex:
             logging.exception(ex)
@@ -175,7 +178,7 @@ class ModuleExecutor(BaseExecutor):
         self.execute_module(message_obj)
 
 
-class ExecutorFactory(AbstractFactory):
+class ExecutorFactory(AbstractFactory, ObjectCreator):
 
     def __init__(self, config=None, klass=None):
         super(ExecutorFactory, self).__init__(config=config)
@@ -205,8 +208,7 @@ class ExecutorFactory(AbstractFactory):
         return is_available
 
     def generate(self, config, message_obj: AbstractMessage):
-        module_obj = object.__new__(self._klass)
-        module_obj.__init__()
+        module_obj = self._create_instance(self._klass)
         if isinstance(module_obj, BaseExecutor):
             module_name = '*' if self._simple_model else message_obj.MODULE
             module_obj.set_configuration(config)
@@ -262,7 +264,7 @@ class BaseExecutionManager(StartableManager):
         self._executor_factory.simple_model = value
 
 
-class MessageExecutionManager(BaseExecutionManager):
+class MessageExecutionManager(BaseExecutionManager, MessageReceiver):
     """
     Thread based message execution Manager
     """
@@ -270,10 +272,7 @@ class MessageExecutionManager(BaseExecutionManager):
     def __init__(self, config, klass=ModuleExecutor):
         super(MessageExecutionManager, self).__init__(config=config, klass=klass)
 
-    def register_listener(self, listener):
-        listener.set_on_message_received(self.on_handle_message) if isinstance(listener, MessageNotifier) else None
-
-    def on_handle_message(self, obj, message: str):
+    def on_message_received(self, obj, message: str):
         try:
             message_object = MessageFactory.generate(message) if message else None
             if (not message_object) or (not self.is_running()):

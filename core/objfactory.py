@@ -15,30 +15,14 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 from common.configurable import Configurable
-from utils import oshelper
+from common.objloader import ObjectLoader
 
 
-class AbstractFactory(Configurable):
+class AbstractFactory(Configurable, ObjectLoader):
 
     def __init__(self, config=None):
         super(AbstractFactory, self).__init__(config=config)
 
-    def create_object(self, name, **kwargs):
-        pass
-
-    @staticmethod
-    def import_klass(class_name):
-        components, import_module = oshelper.extract_class_name(class_name)
-        mod = __import__(import_module)
-        for comp in components[1:]:
-            mod = getattr(mod, comp)
-        return mod
-
-    @staticmethod
-    def create_instance(klass):
-        instance = object.__new__(klass)
-        instance.__init__()
-        return instance
 
 
 

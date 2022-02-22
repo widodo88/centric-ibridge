@@ -18,13 +18,11 @@ from threading import RLock
 from redis import Redis
 from redis.connection import Connection, ConnectionPool
 from common import consts
+from common.singleton import SingletonObject
 from common.startable import Startable, LifeCycleManager
 
 
-class RedisProvider(Startable):
-
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
+class RedisProvider(Startable, SingletonObject):
 
     def __init__(self, config=None):
         super(RedisProvider, self).__init__(config=config)
@@ -53,18 +51,6 @@ class RedisProvider(Startable):
 
     def get_redis(self):
         return Redis(connection_pool=self._pool)
-
-    @classmethod
-    def get_default_instance(cls):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()
 
 
 class RedisPreparer(object):

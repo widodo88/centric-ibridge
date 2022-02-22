@@ -14,15 +14,12 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from threading import RLock
 from common.configurable import Configurable
+from common.singleton import SingletonObject
 from fastapi import FastAPI
 
 
-class RESTModulePreparer(Configurable):
-
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
+class RESTModulePreparer(Configurable, SingletonObject):
 
     def __init__(self, config=None):
         super(RESTModulePreparer, self).__init__(config=config)
@@ -36,15 +33,3 @@ class RESTModulePreparer(Configurable):
         instance.set_configuration(config)
         instance.configure() if not instance.is_configured() else None
         instance.prepare_router(app)
-
-    @classmethod
-    def get_default_instance(cls):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()
