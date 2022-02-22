@@ -23,6 +23,7 @@ from logging.handlers import TimedRotatingFileHandler
 from dotenv import dotenv_values
 from multiprocessing_logging import install_mp_handler
 from common import consts
+from common.objloader import ObjectLoader
 from core.baseappsrv import BaseAppServer
 from core.shutdn import ShutdownHookMonitor
 from common.msgobject import MessageEvent, MessageCommand
@@ -38,7 +39,7 @@ class StoreDictKeyPair(argparse.Action):
         setattr(namespace, self.dest, _dict)
 
 
-class BridgeApp(BaseAppServer):
+class BridgeApp(BaseAppServer, ObjectLoader):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
@@ -187,22 +188,8 @@ class BridgeApp(BaseAppServer):
         consts.SERVICES_AVAILABLE[0][1] = bridge_enabled.lower() == "true"
         consts.SERVICES_AVAILABLE[1][1] = restapi_enabled.lower() == "true"
 
-    @staticmethod
-    def _get_klass_module(class_name):
-        components = class_name.split(".")
-        return components, ".".join(components[:-1])
-
-    def _get_klass(self, class_name):
-        mod = None
-        components, import_modules = self._get_klass_module(class_name)
-        try:
-            mod = __import__(import_modules)
-            for cmp in components[1:]:
-                mod = getattr(mod, cmp)
-            mod = mod if issubclass(mod, BaseAppServer) else None
-        except Exception as ex:
-            logging.error(ex)
-        return mod
+    def _verify_klass(self, klass, class_name):
+        return klass if issubclass(klass, BaseAppServer) else None
 
     def handle_stop_event(self, obj):
         self.stop()

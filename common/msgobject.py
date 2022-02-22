@@ -39,9 +39,8 @@ def get_module_id(mod, submod):
 class Extractable(object):
 
     @staticmethod
-    def extract_message(message):
-        msg_bytes = base64.b64decode(message)
-        return json.loads(msg_bytes.decode("utf-8"))
+    def extract_message(message: bytes):
+        return json.loads(message.decode("utf-8"))
 
 
 class BaseMessage(Extractable):

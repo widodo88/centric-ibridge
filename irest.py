@@ -21,6 +21,7 @@ import logging
 import uvicorn
 from dotenv import dotenv_values
 from common import consts
+from common.objloader import ObjectLoader
 from fastapi import FastAPI, APIRouter
 from starlette.staticfiles import StaticFiles
 from core.baseappsrv import BaseAppServer
@@ -29,7 +30,7 @@ from core.redisprovider import RedisPreparer
 from logging.handlers import TimedRotatingFileHandler
 
 
-class RestApp(BaseAppServer):
+class RestApp(BaseAppServer, ObjectLoader):
 
     def __init__(self):
         super(RestApp, self).__init__()
@@ -53,19 +54,6 @@ class RestApp(BaseAppServer):
         @self.rest_app.get("/", tags=["root"])
         async def index():
             return {'message': 'Welcome to iBridge Integration REST API'}
-
-    @staticmethod
-    def _get_klass(router_name):
-        mod = None
-        components = router_name.split(".")
-        import_modules = ".".join(components[:-1])
-        try:
-            mod = __import__(import_modules)
-            for cmp in components[1:]:
-                mod = getattr(mod, cmp)
-        except Exception as ex:
-            logging.exception(ex)
-        return mod
 
     def register_rest_modules(self) -> FastAPI:
         config = self.get_configuration()
