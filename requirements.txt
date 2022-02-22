@@ -35,6 +35,7 @@ idna==3.3
 immutables==0.16
 importlib-metadata==4.8.3
 jproperties==2.1.1
+kafka-python==2.0.2
 lockfile==0.12.2
 makefun==1.13.1
 multidict==6.0.2
