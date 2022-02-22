@@ -14,6 +14,7 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import time
 import logging
 import socket
 import selectors
@@ -52,7 +53,7 @@ class LocalhostTransport(LocalTransportHandler):
         self.selector.register(self.socket, selectors.EVENT_READ)
         while self.is_running():
             try:
-                events = self.selector.select(timeout=2)
+                events = self.selector.select(timeout=0.5)
                 for ev, _ in events:
                     event_socket = ev.fileobj
                     if event_socket == self.socket:
@@ -66,7 +67,10 @@ class LocalhostTransport(LocalTransportHandler):
                             fp.close()
                             should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
                             if not should_terminate:
-                                self.handle_message(message)
+                                if message and (len(message) > 0):
+                                    self.handle_message(message)
+                                else:
+                                    time.sleep(0.2)
                         finally:
                             event_socket.close()
             except Exception as ex:
