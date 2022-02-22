@@ -16,7 +16,7 @@
 
 import logging
 from common.configurable import Configurable
-from threading import RLock
+from common.singleton import SingletonObject
 
 
 class StartableListener(object):
@@ -355,19 +355,5 @@ class StartableManager(Startable):
                 logging.error(exc)
 
 
-class LifeCycleManager(StartableManager):
-
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
-
-    @classmethod
-    def get_default_instance(cls):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()
+class LifeCycleManager(StartableManager, SingletonObject):
+    pass

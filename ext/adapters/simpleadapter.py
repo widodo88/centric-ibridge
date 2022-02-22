@@ -14,16 +14,13 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-from common.configurable import Configurable
-from common.objloader import ObjectLoader
+from core.transadapter import TransportAdapter
 
 
-class AbstractFactory(Configurable, ObjectLoader):
+class SimpleTransportAdapter(TransportAdapter):
 
     def __init__(self, config=None):
-        super(AbstractFactory, self).__init__(config=config)
+        super(SimpleTransportAdapter, self).__init__(config=config)
 
-
-
-
-
+    def transform_message(self, obj: object, message: str) -> str:
+        return message

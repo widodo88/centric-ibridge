@@ -56,6 +56,7 @@ MQ_TRANSPORT_CHANNEL = "mq.transport.{0}.channel"
 MQ_TRANSPORT_CLIENTID = "mq.transport.{0}.clientid"
 MQ_TRANSPORT_HEARTBEAT = "mq.transport.{0}.heartbeat"
 MQ_TRANSPORT_EXCHANGE = "mq.transport.{0}.exchange"
+MQ_TRANSPORT_ADAPTER = "mq.transport.{0}.adapter.class"
 
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
@@ -90,6 +91,7 @@ MQ_TRANSPORT_STOMP = "stomp"
 MQ_TRANSPORT_MQTT = "mqtt"
 MQ_TRANSPORT_AMQP = "amqp"
 MQ_TRANSPORT_REDIS = "redis"
+MQ_TRANSPORT_KAFKA = "kafka"
 MQ_TRANSPORT_UNIX = "unix"
 MQ_TRANSPORT_LOCAL = "local"
 
@@ -104,7 +106,8 @@ TRANSPORT_INFO = {MQ_TRANSPORT_UNIX: "core.transport.xsocktransport.UnixSocketTr
                   MQ_TRANSPORT_STOMP: "core.transport.stomptransport.StompTransport",
                   MQ_TRANSPORT_MQTT: "core.transport.mqtttransport.MqttTransport",
                   MQ_TRANSPORT_AMQP: "core.transport.amqptransport.AmqpTransport",
-                  MQ_TRANSPORT_REDIS: "core.transport.redistransport.RedisTransport"}
+                  MQ_TRANSPORT_REDIS: "core.transport.redistransport.RedisTransport",
+                  MQ_TRANSPORT_KAFKA: "core.transport.kafkatransport.KafkaTransport"}
 
 SERVICES_AVAILABLE = [["core.bridgesrv.BridgeServer", False],
                       ["core.reststarter.RESTServerStarter", False]]

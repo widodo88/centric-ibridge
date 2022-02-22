@@ -16,15 +16,13 @@
 from threading import Thread, RLock
 from socket import AF_INET, socket, SOCK_STREAM
 from common.startable import Startable
+from common.singleton import SingletonObject
 from common import consts
 import logging
 import selectors
 
 
-class ShutdownHookMonitor(Startable):
-
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
+class ShutdownHookMonitor(Startable, SingletonObject):
 
     def __init__(self, config=None):
         super(ShutdownHookMonitor, self).__init__(config=config)
@@ -107,14 +105,3 @@ class ShutdownHookMonitor(Startable):
                 logging.error(ex)
             finally:
                 self.stop() if should_terminate else None
-
-    @classmethod
-    def get_default_instance(cls):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()

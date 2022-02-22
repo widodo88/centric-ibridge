@@ -39,8 +39,7 @@ class BridgeServer(BaseAppServer):
 
         local_transport = transhelper.get_local_transport()
         local_transport.set_configuration(cfg)
-        local_transport.add_listener(transport_listener)
-        self.add_object(local_transport)
+        TransportPreparer.prepare_adapter(local_transport, cfg, transport_listener, self)
 
         message_listener = MessageNotifier()
         global_pool = self.get_config_value(consts.USE_GLOBAL_POOL, "false")

@@ -22,6 +22,7 @@ class Configurable(object):
 
     def __init__(self, config=None):
         """Initialize the component, configuration object is optional which could be added by set_configuration later"""
+        super(Configurable, self).__init__()
         self._configuration = config
         self._configured = Configurable.UNCONFIGURED
         self._lock = RLock()

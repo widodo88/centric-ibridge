@@ -18,11 +18,6 @@ import os
 import platform
 
 
-def extract_class_name(class_name):
-    components = class_name.split(".")
-    return components, ".".join(components[:-1])
-
-
 def is_windows():
     return os.name == "nt"
 

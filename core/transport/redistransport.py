@@ -49,9 +49,10 @@ class RedisTransport(TransportHandler):
                 pubsub.unsubscribe(self.get_transport_channel())
                 pubsub.reset()
         finally:
-            client = None
+            client.close()
 
-    def _get_provider(self):
+    @staticmethod
+    def _get_provider():
         provider = RedisProvider.get_default_instance()
         assert provider.is_enabled(), "Redis must be enabled to use this transport"
         return provider

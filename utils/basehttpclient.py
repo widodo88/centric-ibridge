@@ -106,7 +106,7 @@ class BaseHttpClient(object):
     def put(self, resource, data=None, json_data=None, **kwargs):
         url = self._bind_url(resource)
         cookies = self._parent.cookies if self._parent else self._cookies
-        resp = requests.put(url, data, json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
+        resp = requests.put(url, data, json=json_data, **kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)
         return resp
 

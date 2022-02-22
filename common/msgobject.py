@@ -36,15 +36,18 @@ def get_module_id(mod, submod):
     return "{0}@{1}".format(mod, submod)
 
 
-class BaseMessage(object):
-
-    def __init__(self, msg_type=None):
-        self.message_mode = msg_type
+class Extractable(object):
 
     @staticmethod
     def extract_message(message):
         msg_bytes = base64.b64decode(message)
         return json.loads(msg_bytes.decode("utf-8"))
+
+
+class BaseMessage(Extractable):
+
+    def __init__(self, msg_type=None):
+        self.message_mode = msg_type
 
 
 class AbstractMessage(BaseMessage):
@@ -160,27 +163,3 @@ class MessageEvent(AbstractMessage):
                  'options': self.options.copy()}
         command_str = json.dumps(adict)
         return base64.b64encode(command_str.encode("utf-8"))
-
-
-class MessageFactory(BaseMessage):
-
-    @classmethod
-    def get_class(cls, msg_type):
-        klass_list = [MessageCommand, MessageEvent]
-        return klass_list[msg_type] if msg_type < len(klass_list) else None
-
-    @classmethod
-    def instantiate(cls, klass):
-        obj = object.__new__(klass)
-        obj.__init__()
-        return obj
-
-    @classmethod
-    def generate(cls, message):
-        message = message.encode("utf-8") if isinstance(message, str) else message
-        cmd_dict = cls.extract_message(message) \
-            if isinstance(message, bytes) else message if isinstance(message, dict) else None
-        klass = cls.get_class(cmd_dict['msgtype']) if cmd_dict and ('msgtype' in cmd_dict) else None
-        obj = cls.instantiate(klass) if klass else None
-        obj.setup(cmd_dict) if obj and isinstance(obj, AbstractMessage) else None
-        return obj
