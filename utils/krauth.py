@@ -13,7 +13,7 @@
 #
 
 import re
-import base64
+import pybase64 as base64
 import hashlib
 import requests
 import threading

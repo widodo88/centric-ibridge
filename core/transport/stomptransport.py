@@ -51,13 +51,13 @@ class StompTransport(TransportHandler):
                                                   StompSpec.ID_HEADER: self.get_transport_client_id()})
             try:
                 while self.is_running():
-                    if self._stomp_client.canRead(2):
+                    if self._stomp_client.canRead(0.5):
                         frame = self._stomp_client.receiveFrame()
                         cmd_str = frame.body
                         self._stomp_client.ack(frame)
                         self.handle_message(cmd_str)
                     else:
-                        time.sleep(0.4)
+                        time.sleep(0.2)
                     if (time.time() - self._stomp_client.lastSent) > client_heartbeat:
                         self._stomp_client.beat()
             finally:
