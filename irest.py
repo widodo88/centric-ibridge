@@ -47,9 +47,13 @@ class RestApp(BaseAppServer, ObjectLoader):
         self.register_rest_modules()
 
     def configure_rest_app(self):
-        self.rest_app = FastAPI(title="iBridge Server")
+        config = self.get_configuration()
+        self.rest_app = FastAPI(title="iBridge Server",
+                                root_path=config.get(consts.RESTAPI_ROOT_PATH),
+                                root_path_in_servers=False)
         self.rest_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH,
-                                                                          "resources/static")),name="static")
+                                                                          "resources/static")),
+                            name="static")
 
         @self.rest_app.get("/", tags=["root"])
         async def index():
