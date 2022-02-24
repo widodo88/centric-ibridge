@@ -26,4 +26,8 @@ def get_local_transport():
 
 
 def get_mq_transport(config, index):
-    return TransportPreparer.create_transport(config, index)
+    transport = TransportPreparer.create_transport(config, index)
+    if transport and not transport.is_configured():
+        transport.setup_transport()
+        transport.configure()
+    return transport

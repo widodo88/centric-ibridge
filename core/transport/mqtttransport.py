@@ -91,10 +91,4 @@ class MqttTransport(TransportHandler):
     def publish_message(self, message_obj):
         self.client.publish(self.get_transport_channel(), message_obj.encode().decode("utf-8"))
 
-    def notify_server(self, message_obj):
-        self.connect()
-        try:
-            self.publish_message(message_obj)
-        finally:
-            self.disconnect()
 

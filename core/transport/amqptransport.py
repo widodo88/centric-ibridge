@@ -67,8 +67,8 @@ class AmqpTransport(TransportHandler):
             channel.queue_bind(queue=self.get_transport_channel(), exchange=self._transport_exchange)
             channel.basic_consume(callback=self.on_message_received)
             try:
-                while self.is_running() and (not self._connection.blocking_read(timeout=2)):
-                    time.sleep(0.4)
+                while self.is_running() and (not self._connection.blocking_read(timeout=0.5)):
+                    time.sleep(0.2)
             finally:
                 self.close_object(channel)
         except Exception as ex:
@@ -88,9 +88,3 @@ class AmqpTransport(TransportHandler):
         channel.basic_publish(exchange='', routing_key=self.get_transport_channel(),
                               body=message_obj.encode().decode("utf-8"))
 
-    def notify_server(self, message_obj):
-        self.connect()
-        try:
-            self.publish_message(message_obj)
-        finally:
-            self.disconnect()
