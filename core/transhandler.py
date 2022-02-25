@@ -13,12 +13,13 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
 import logging
 import threading
 import time
 from common import consts
 from core.msghandler import MessageNotifier, MessageHandler
+from core.transadapter import TransportAdapter
+from ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportMessageNotifier(MessageNotifier):
@@ -38,6 +39,7 @@ class TransportHandler(MessageHandler):
         self._transport_channel = None
         self._transport_client_id = None
         self._transport_adapter = None
+        self._default_transport_adapter = DefaultTransportAdapter
 
     def do_listen(self):
         pass
@@ -76,7 +78,7 @@ class TransportHandler(MessageHandler):
         return self._transport_client_id
 
     def get_transport_adapter(self):
-        return self._transport_adapter
+        return self._transport_adapter if self._transport_adapter else self._default_transport_adapter
 
     def set_transport_index(self, index):
         self._transport_index = index
@@ -101,6 +103,9 @@ class TransportHandler(MessageHandler):
 
     def set_transport_adapter(self):
         return self._transport_adapter
+
+    def set_default_transport_adapter(self, adapter: TransportAdapter):
+        self._default_transport_adapter = adapter
 
     def get_config_value(self, key, def_value):
         config_key = str(key).format(self._transport_index)
