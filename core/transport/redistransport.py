@@ -19,22 +19,23 @@ import logging
 from redis import Redis
 from core.transhandler import TransportHandler
 from core.redisprovider import RedisProvider
+from typing import Union
 
 
 class RedisTransport(TransportHandler):
 
     def __init__(self, config=None, transport_index=0):
         super(RedisTransport, self).__init__(config=config, transport_index=transport_index)
+        self._client: Union[Redis, None] = None
 
     def do_configure(self):
         super(RedisTransport, self).do_configure()
         self._get_provider()
 
     def do_listen(self):
-        provider = self._get_provider()
-        client = Redis(connection_pool=provider.get_pool())
+        self.connect()
         try:
-            pubsub = client.pubsub()
+            pubsub = self._client.pubsub()
             pubsub.subscribe(self.get_transport_channel())
             try:
                 while self.is_running() and pubsub.subscribed:
@@ -49,7 +50,17 @@ class RedisTransport(TransportHandler):
                 pubsub.unsubscribe(self.get_transport_channel())
                 pubsub.reset()
         finally:
-            client.close()
+            self.disconnect()
+
+    def connect(self):
+        provider = self._get_provider()
+        self._client = Redis(connection_pool=provider.get_pool())
+
+    def disconnect(self):
+        self._client.close() if self._client else None
+
+    def publish_message(self, message_obj):
+        self._client.publish(self.get_transport_channel(), message_obj.encode().decode("utf-8"))
 
     @staticmethod
     def _get_provider():

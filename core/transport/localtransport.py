@@ -18,8 +18,6 @@ import time
 import logging
 import socket
 import selectors
-import traceback
-
 from common import consts
 from core.translocal import LocalTransportHandler
 
@@ -30,6 +28,7 @@ class LocalhostTransport(LocalTransportHandler):
         super(LocalhostTransport, self).__init__(config=config, transport_index=transport_index)
         self.socket = None
         self.selector = None
+        self.client = None
 
     def do_configure(self):
         super(LocalhostTransport, self).do_configure()
@@ -45,12 +44,14 @@ class LocalhostTransport(LocalTransportHandler):
         except Exception as ex:
             logging.exception(ex)
 
-    def do_listen(self):
-        should_terminate = False
+    def prepare_listening(self):
         self.socket.bind((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
         self.socket.setblocking(False)
         self.socket.listen()
         self.selector.register(self.socket, selectors.EVENT_READ)
+
+    def do_listen(self):
+        should_terminate = False
         while self.is_running():
             try:
                 events = self.selector.select(timeout=0.5)
@@ -78,19 +79,7 @@ class LocalhostTransport(LocalTransportHandler):
             finally:
                 self.stop() if should_terminate else None
 
-    def connect(self):
-        raise NotImplementedError("not implemented here")
-
-    def disconnect(self):
-        raise NotImplementedError("not implemented here")
-
     def publish_message(self, message_obj):
-        raise NotImplementedError("not implemented here")
-
-    def notify_server(self, message_obj):
-        raise NotImplementedError("notify_server not implemented here")
-
-    def notify_server(self, message_obj):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((consts.LOCAL_TRANSPORT_ADDR, consts.LOCAL_TRANSPORT_PORT))
         try:

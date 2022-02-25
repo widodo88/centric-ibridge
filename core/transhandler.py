@@ -43,8 +43,7 @@ class TransportHandler(MessageHandler):
         pass
 
     def do_start(self):
-        if self.is_enabled():
-            self._transport_thread.start()
+        self._transport_thread.start() if self.is_enabled() else None
 
     def listen(self):
         while self.is_running():
@@ -108,16 +107,20 @@ class TransportHandler(MessageHandler):
         return super(TransportHandler, self).get_config_value(config_key, def_value)
 
     def connect(self):
-        raise NotImplementedError("not implemented here")
+        pass
 
     def disconnect(self):
-        raise NotImplementedError("not implemented here")
+        pass
 
     def publish_message(self, message_obj):
         raise NotImplementedError("not implemented here")
 
     def notify_server(self, message_obj):
-        raise NotImplementedError("notify_server not implemented here")
+        self.connect()
+        try:
+            self.publish_message(message_obj)
+        finally:
+            self.disconnect()
 
     def setup_transport(self):
         self._transport_address = self.get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")

@@ -16,69 +16,30 @@
 
 import logging
 import time
-import traceback
 import socket
 import selectors
 import os
 import os.path
 from common import consts
-from core.translocal import LocalTransportHandler
+from core.transport.localtransport import LocalhostTransport
 
 
-class UnixSocketTransport(LocalTransportHandler):
-
-    def __init__(self, config=None, transport_index=0):
-        super(UnixSocketTransport, self).__init__(config=config, transport_index=transport_index)
-        self.socket = None
-        self.selector = None
+class UnixSocketTransport(LocalhostTransport):
 
     def do_configure(self):
         super(UnixSocketTransport, self).do_configure()
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.selector = selectors.DefaultSelector()
 
-    def do_stop(self):
-        super(UnixSocketTransport, self).do_stop()
-        if not self.socket:
-            return
-        try:
-            self.socket.close()
-        except Exception as ex:
-            logging.exception(ex)
-
-    def do_listen(self):
-        should_terminate = False
+    def prepare_listening(self):
         if os.path.exists(consts.UNIX_SOCKET_FILE):
             os.remove(consts.UNIX_SOCKET_FILE)
         self.socket.bind(consts.UNIX_SOCKET_FILE)
         self.socket.setblocking(False)
         self.socket.listen()
         self.selector.register(self.socket, selectors.EVENT_READ)
-        while self.is_running():
-            try:
-                events = self.selector.select(timeout=2)
-                for ev, _ in events:
-                    event_socket = ev.fileobj
-                    if event_socket == self.socket:
-                        conn, __ = event_socket.accept()
-                        conn.setblocking(False)
-                        self.selector.register(conn, selectors.EVENT_READ)
-                    else:
-                        fp = event_socket.makefile('r', buffering=1024)
-                        message = fp.readline()
-                        fp.close()
-                        should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
-                        if not should_terminate:
-                            if message and (len(message) > 0):
-                                self.handle_message(message)
-                            else:
-                                time.sleep(0.2)
-            except Exception as ex:
-                logging.error(ex)
-            finally:
-                self.stop() if should_terminate else None
 
-    def notify_server(self, message_obj):
+    def publish_message(self, message_obj):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.connect(consts.UNIX_SOCKET_FILE)
         try:
