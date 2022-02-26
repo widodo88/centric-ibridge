@@ -17,7 +17,7 @@
 from common import consts
 from common.objloader import ObjectLoader, ObjectCreator
 from common.singleton import SingletonObject
-from core.objfactory import AbstractFactory
+from common.objfactory import AbstractFactory
 from core.transhandler import TransportHandler, TransportMessageNotifier
 from core.transadapter import TransportAdapter
 from ext.adapters.defaultadapter import DefaultTransportAdapter
