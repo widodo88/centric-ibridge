@@ -18,7 +18,7 @@ import logging
 import traceback
 from common import consts
 from common import modconfig
-from core.objfactory import AbstractFactory
+from common.objfactory import AbstractFactory
 from common.objloader import ObjectLoader, ObjectCreator
 from common.startable import Startable, StartableManager
 from common.msgobject import MessageEvent, AbstractMessage
