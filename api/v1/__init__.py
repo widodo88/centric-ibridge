@@ -13,23 +13,17 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from fastapi_users import models
-
-
-class User(models.BaseUser):
-    pass
+from common import consts
+from core.flask.modregister import ModuleRegisterer
+from core.baserestsrv import BaseRestServer
+from api.v1.extensions import flask_api
 
 
-class UserCreate(models.BaseUserCreate):
-    pass
-
-
-class UserUpdate(models.BaseUserUpdate):
-    pass
-
-
-class UserDB(User, models.BaseUserDB):
-    pass
-
+def register_rest_modules(app_srv: BaseRestServer):
+    config = app_srv.get_configuration()
+    rest_services = config[consts.RESTAPI_AVAILABLE_SERVICES] if \
+        consts.RESTAPI_AVAILABLE_SERVICES in config else None
+    rest_services = rest_services if rest_services else ""
+    rest_services = [service.strip() for service in rest_services.split(",") if service.strip() not in [None, '']]
+    ModuleRegisterer.register_module(flask_api, rest_services)
 

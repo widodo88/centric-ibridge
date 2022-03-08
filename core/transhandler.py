@@ -19,7 +19,7 @@ import time
 from common import consts
 from core.msghandler import MessageNotifier, MessageHandler
 from core.transadapter import TransportAdapter
-from ext.adapters.defaultadapter import DefaultTransportAdapter
+from core.ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportMessageNotifier(MessageNotifier):

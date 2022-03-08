@@ -13,71 +13,66 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
 import os
 import re
 import sys
 import logging
-import uvicorn
+import api
+import datetime as dt
 from dotenv import dotenv_values
 from common import consts
-from common.objloader import ObjectLoader
-from fastapi import FastAPI, APIRouter
-from starlette.staticfiles import StaticFiles
-from core.baseappsrv import BaseAppServer
-from core.restprep import RESTModulePreparer
+from flask import Flask, redirect, _request_ctx_stack
+from flask_jwt_extended import create_access_token, set_access_cookies
+from flask_jwt_extended import get_jwt_identity
+from werkzeug.middleware.proxy_fix import ProxyFix
+from multiprocessing_logging import install_mp_handler
+from core.baserestsrv import BaseRestServer
 from core.redisprovider import RedisPreparer
 from logging.handlers import TimedRotatingFileHandler
+from api import register_rest_modules
+from api import RootApiResource
 
 
-class RestApp(BaseAppServer, ObjectLoader):
-
-    def __init__(self):
-        super(RestApp, self).__init__()
-        self.rest_app = None
+class RestApp(BaseRestServer):
 
     def do_configure(self):
-        config = self.get_configuration()
-        mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
-        mode = "false" if mode is None else mode
-        consts.IS_PRODUCTION_MODE = mode.lower() == "true"
+        super(RestApp, self).do_configure()
+        config = self.get_configuration()        
         consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
         RedisPreparer.prepare_redis(config, self)
-        self.configure_rest_app()
-        self.register_rest_modules()
+        rest_app = Flask("iBridge Server",
+                         root_path=config.get(consts.RESTAPI_ROOT_PATH),
+                         static_url_path="/static",
+                         static_folder=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static"))
+        rest_app.wsgi_app = ProxyFix(rest_app.wsgi_app)
+        rest_app.add_url_rule('/', None, self.root_index)
+        rest_app.after_request_funcs.setdefault(None, []).append(self.refresh_token)
+        self.set_rest_app(rest_app)
+        api.ExtensionConfigurator.configure_extensions(self)
+        register_rest_modules(self)
 
-    def configure_rest_app(self):
-        config = self.get_configuration()
-        self.rest_app = FastAPI(title="iBridge Server",
-                                root_path=config.get(consts.RESTAPI_ROOT_PATH),
-                                root_path_in_servers=False)
-        self.rest_app.mount("/static", StaticFiles(directory=os.path.join(consts.DEFAULT_SCRIPT_PATH,
-                                                                          "resources/static")),
-                            name="static")
+    def root_index(self):
+        return redirect(self.rest_api.url_for(RootApiResource))
 
-        @self.rest_app.get("/", tags=["root"])
-        async def index():
-            return {'message': 'Welcome to iBridge Integration REST API'}
+    @staticmethod
+    def refresh_token(response):
+        decoded_jwt = getattr(_request_ctx_stack.top, "jwt", None)
+        if decoded_jwt:
+            try:
+                exp_timestamp = decoded_jwt["exp"]
+                now = dt.datetime.now(dt.timezone.utc)
+                target_timestamp = dt.datetime.timestamp(now + dt.timedelta(minutes=30))
+                if target_timestamp > exp_timestamp:
+                    access_token = create_access_token(identity=get_jwt_identity())
+                    set_access_cookies(response, access_token)
+            except (RuntimeError, KeyError):
+                pass
+        return response
 
-    def register_rest_modules(self) -> FastAPI:
-        config = self.get_configuration()
-        rest_services = config[consts.RESTAPI_AVAILABLE_SERVICES] if \
-            consts.RESTAPI_AVAILABLE_SERVICES in config else None
-        rest_services = rest_services if rest_services else ""
-        rest_services = [service.strip() for service in rest_services.split(",") if service not in [None, '']]
-        for mod_name in rest_services:
-            mod = self._get_klass(mod_name)
-            if isinstance(mod, APIRouter):
-                self.rest_app.include_router(mod)
-            elif mod and (issubclass(mod, RESTModulePreparer) or isinstance(mod, RESTModulePreparer)):
-                mod.register_api_router(config, self.rest_app)
-        return self.rest_app
-
-    def get_rest_app(self):
-        self.configure()
-        return self.rest_app
-
-    __call__ = get_rest_app
+    def do_start(self):
+        super(RestApp, self).do_start()
+        rest_app = self.get_rest_app()
+        rest_app.run(host="127.0.0.1", port=8080, debug=not consts.IS_PRODUCTION_MODE)
 
 
 def configure_logging(config):
@@ -89,6 +84,7 @@ def configure_logging(config):
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     handler = TimedRotatingFileHandler(log_file, when='midnight', backupCount=5)
     logging.basicConfig(format=log_format, datefmt=log_date_format, handlers=[handler], level=default_level)
+    install_mp_handler()
 
 
 def create_app():
@@ -100,9 +96,9 @@ def create_app():
     return rest_app_instance()
 
 
-app = create_app()
+app: Flask = create_app()
 
 if __name__ == '__main__':
     is_debug = not consts.IS_PRODUCTION_MODE
     sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(uvicorn.run("irest:app", debug=is_debug, reload=True))
+    sys.exit(RestApp.get_default_instance().start())
