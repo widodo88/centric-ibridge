@@ -14,8 +14,16 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import base64
-import json
+try:
+    import ujson as json
+except:
+    import json
+
+try:
+    import pybase64 as base64
+except:
+    import base64
+
 import uuid
 
 MODE_COMMAND = 0

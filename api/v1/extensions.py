@@ -13,8 +13,11 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+try:
+    import pybase64 as base64
+except:
+    import base64
 import os
-import base64
 from common import consts
 from core.flask.flaskapi import FlaskApi
 from flask_cors import CORS
