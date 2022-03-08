@@ -16,7 +16,7 @@ import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from utils.krauth import HTTPKrakenXBasicAuth, HTTPKrakenZBasicAuth
 from requests_jwt import JWTAuth
-from requests_oauthlib.oauth2_auth import OAuth2, WebApplicationClient
+from authlib.integrations.requests_client import OAuth2Auth
 
 NO_AUTH = 0
 BASIC_AUTH = 1
@@ -65,12 +65,7 @@ class BaseHttpClient(object):
             return JWTAuth(self._token)
         elif self._auth_type == OAUTH2_AUTH:
             cookies = self._parent.cookies if self._parent else self._cookies
-            parent_client = getattr(self._parent, "_client_webapp") if \
-                self._parent and hasattr(self._parent, "_client_webapp") else None
-            client = parent_client if parent_client else WebApplicationClient(self._user, token=cookies)
-            if not parent_client:
-                setattr(self._parent, "_client_webapp", client)
-            return OAuth2(client=client, token=cookies)
+            return OAuth2Auth(cookies)
         return None
 
     def _bind_url(self, resource):

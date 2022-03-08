@@ -13,23 +13,24 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from flask_restx import Api
 from common.configurable import Configurable
 from common.singleton import SingletonObject
+from utils.restutils import err_resp
 
 
-class RESTModulePreparer(Configurable, SingletonObject):
+class BaseAuthService(Configurable, SingletonObject):
 
-    def __init__(self, config=None):
-        super(RESTModulePreparer, self).__init__(config=config)
+    def perform_login(self, login_data: dict):
+        return err_resp("Error occurs during authenticating!", "unimplemented_method", 500)
 
-    def prepare_router(self, api: Api):
-        raise NotImplementedError()
+    def login(self, login_data: dict):
+        if not login_data:
+            return err_resp("Login information must be provided", "bad_login", 400)
+        return self.perform_login(login_data)
 
-    @classmethod
-    def register_api_router(cls, config: dict, api: Api) -> Api:
-        instance = cls.get_default_instance()
-        instance.set_configuration(config)
-        instance.configure() if not instance.is_configured() else None
-        return instance.prepare_router(api)
+
+
+
+
+
+

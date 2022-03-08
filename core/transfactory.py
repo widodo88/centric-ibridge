@@ -20,7 +20,7 @@ from common.singleton import SingletonObject
 from common.objfactory import AbstractFactory
 from core.transhandler import TransportHandler, TransportMessageNotifier
 from core.transadapter import TransportAdapter
-from ext.adapters.defaultadapter import DefaultTransportAdapter
+from core.ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportFactory(AbstractFactory, SingletonObject, ObjectCreator):

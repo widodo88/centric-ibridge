@@ -103,7 +103,8 @@ class BridgeApp(BaseAppServer, ObjectLoader):
     def configure_services(self):
         service_enabled = [service for service in consts.SERVICES_AVAILABLE if service[1]]
         for service in service_enabled:
-            self.add_object(self.configure_app_server(service[0]))
+            server_instance = self.configure_app_server(service[0])
+            self.add_object(server_instance) if server_instance else None
 
     def do_start_command(self, args):
         logging.info(self.parser.description)

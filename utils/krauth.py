@@ -11,9 +11,11 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
-
+try:
+    import pybase64 as base64
+except:
+    import base64
 import re
-import base64
 import hashlib
 import requests
 import threading

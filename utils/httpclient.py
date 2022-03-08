@@ -13,10 +13,17 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+try:
+    import ujson as json
+except:
+    import json
+
+try:
+    import pybase64 as base64
+except:
+    import base64
 
 from typing import Type
-import json
-import base64
 from utils.basehttpclient import BaseHttpClient
 
 

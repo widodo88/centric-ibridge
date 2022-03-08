@@ -12,8 +12,16 @@
 # without permission, explicit or implied, of the author.
 #
 
-import json
-import base64
+try:
+    import ujson as json
+except:
+    import json
+
+try:
+    import pybase64 as base64
+except:
+    import base64
+
 from common import consts
 from utils.basehttpclient import BaseHttpClient, KRAKEN_ZBASIC
 
