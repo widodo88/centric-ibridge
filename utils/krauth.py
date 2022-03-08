@@ -13,7 +13,7 @@
 #
 
 import re
-import pybase64 as base64
+import base64
 import hashlib
 import requests
 import threading
@@ -61,7 +61,7 @@ class HTTPKrakenZBasicAuth(AuthBase):
         y = y.encode('utf-8') if isinstance(y, str) else y
         yl = len(y)
         key = y if yl < 16 else y[:16] if yl < 24 else y[:24] if yl < 32 else y[:32]
-        x = pad(x)
+        x = bytes(pad(x), 'utf-8')
         cipher = AES.new(hashlib.md5(key).digest(), AES.MODE_ECB)
         return base64.b64encode(cipher.encrypt(x))
 

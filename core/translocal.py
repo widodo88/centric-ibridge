@@ -14,6 +14,8 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import time
+import logging
 from common.singleton import SingletonObject
 from core.transhandler import TransportHandler
 
@@ -25,4 +27,17 @@ class LocalTransportHandler(TransportHandler, SingletonObject):
 
     def send_shutdown_signal(self):
         pass
+
+    def prepare_listening(self):
+        raise NotImplementedError("not implemented here")
+
+    def listen(self):
+        while self.is_running():
+            try:
+                self.prepare_listening()
+                self.do_listen()
+            except Exception as ex:
+                logging.error(ex)
+                if self.is_running():
+                    time.sleep(5)
 

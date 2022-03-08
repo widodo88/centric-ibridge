@@ -42,14 +42,13 @@ class RESTServerStarter(BaseAppServer):
             run_args = [
                 consts.DEFAULT_SCRIPT_PATH + '/' +
                 'websvcsvr',
-                '-w', '4',
-                '-k', 'uvicorn.workers.UvicornWorker',
+                '-w', '8',
                 '-b', '0.0.0.0:8080',
                 '-n', 'centric-rest-ibridge',
                 '-p', str(pid_file),
                 '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
             ]
-            run_args += ["""irest:create_app()"""]
+            run_args += ["""irest:app"""]
             gunicorn_master_proc = None
 
             def kill_proc(dummy_signum, dummy_frame):

@@ -46,6 +46,10 @@ RESTAPI_LOG_FILE = "restapi.log.file"
 REDIS_ENABLED = "redis.enabled"
 REDIS_URL = "redis.url"
 
+LDAP_ADDRESS = "ldap.address"
+LDAP_USER_PREFIX = "ldap.user.prefix"
+LDAP_USER_SUFFIX = "ldap.user.suffix"
+
 MQ_TRANSPORT_COUNT = "mq.transport.count"
 MQ_TRANSPORT_TYPE = "mq.transport.{0}.type"
 MQ_TRANSPORT_ADDR = "mq.transport.{0}.address"

@@ -16,7 +16,7 @@
 
 from common.msgobject import Extractable, AbstractMessage, MessageCommand, MessageEvent
 from common.objloader import ObjectCreator
-from core.objfactory import AbstractFactory
+from common.objfactory import AbstractFactory
 
 
 class MessageFactory(AbstractFactory, Extractable, ObjectCreator):

@@ -17,8 +17,8 @@
 import time
 import traceback
 import logging
-from kafka import KafkaConsumer
-from common import consts
+from kafka import KafkaConsumer, KafkaProducer
+from common.msgobject import AbstractMessage
 from core.transhandler import TransportHandler
 
 
@@ -32,7 +32,7 @@ class KafkaTransport(TransportHandler):
 
     def do_configure(self):
         super(KafkaTransport, self).do_configure()
-        kafka_topic = self._transport_channel.split("/") if isinstance(self._transport_channel, str) else [""]
+        kafka_topic = self._transport_channel.split(",") if isinstance(self._transport_channel, str) else [""]
         self._kafka_group_id = kafka_topic[1] if len(kafka_topic) > 1 else None
         self._kafka_topic = kafka_topic[0].split(",")
         address = "{}:{}".format(self.get_transport_address(), self.get_transport_port())
@@ -57,6 +57,12 @@ class KafkaTransport(TransportHandler):
                 self._connection.unsubscribe()
         finally:
             self._connection.close(True)
+
+    def publish_message(self, message_obj: AbstractMessage):
+        address = "{}:{}".format(self.get_transport_address(), self.get_transport_port())
+        kafka_topic = self._transport_channel.split(",") if isinstance(self._transport_channel, str) else [""]
+        publisher = KafkaProducer(bootstrap_servers=address)
+        publisher.send(kafka_topic[0], message_obj.encode().decode("utf-8"))
 
 
         

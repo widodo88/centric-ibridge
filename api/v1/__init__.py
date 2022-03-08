@@ -13,21 +13,17 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from utils import oshelper
-from core.transport.xsocktransport import UnixSocketTransport
-from core.transport.localtransport import LocalhostTransport
-from core.transfactory import TransportPreparer
-
-
-def get_local_transport():
-    return UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-        else LocalhostTransport.get_default_instance()
+from common import consts
+from core.flask.modregister import ModuleRegisterer
+from core.baserestsrv import BaseRestServer
+from api.v1.extensions import flask_api
 
 
-def get_mq_transport(config, index):
-    transport = TransportPreparer.create_transport(config, index)
-    if transport and not transport.is_configured():
-        transport.setup_transport()
-        transport.configure()
-    return transport
+def register_rest_modules(app_srv: BaseRestServer):
+    config = app_srv.get_configuration()
+    rest_services = config[consts.RESTAPI_AVAILABLE_SERVICES] if \
+        consts.RESTAPI_AVAILABLE_SERVICES in config else None
+    rest_services = rest_services if rest_services else ""
+    rest_services = [service.strip() for service in rest_services.split(",") if service.strip() not in [None, '']]
+    ModuleRegisterer.register_module(flask_api, rest_services)
+

@@ -13,23 +13,26 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from flask_restx import Api
+import typing
+from flask_restx import Api, Namespace
+from core.restprep import RESTModulePreparer
 from common.configurable import Configurable
-from common.singleton import SingletonObject
 
 
-class RESTModulePreparer(Configurable, SingletonObject):
+class FlaskApi(Configurable, Api):
 
-    def __init__(self, config=None):
-        super(RESTModulePreparer, self).__init__(config=config)
+    def __init__(self, config=None, **kwargs):
+        super(FlaskApi, self).__init__(**kwargs)
 
-    def prepare_router(self, api: Api):
-        raise NotImplementedError()
+    def set_prefix(self, prefix):
+        self.prefix = prefix
 
-    @classmethod
-    def register_api_router(cls, config: dict, api: Api) -> Api:
-        instance = cls.get_default_instance()
-        instance.set_configuration(config)
-        instance.configure() if not instance.is_configured() else None
-        return instance.prepare_router(api)
+    def set_title(self, title):
+        self.title = title
+
+    def register_module(self, klass):
+        config = self.get_configuration()
+        if isinstance(klass, Namespace):
+            self.add_namespace(klass)
+        elif klass and (issubclass(klass, RESTModulePreparer) or isinstance(klass, RESTModulePreparer)):
+            klass.register_api_router(config, self)

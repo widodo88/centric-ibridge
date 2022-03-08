@@ -20,9 +20,9 @@ from threading import RLock
 class Configurable(object):
     CONFIGURING, CONFIGURED, UNCONFIGURED = 4, 5, 6
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, **kwargs):
         """Initialize the component, configuration object is optional which could be added by set_configuration later"""
-        super(Configurable, self).__init__()
+        super(Configurable, self).__init__(**kwargs)
         self._configuration = config
         self._configured = Configurable.UNCONFIGURED
         self._lock = RLock()

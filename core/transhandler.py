@@ -13,12 +13,13 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
 import logging
 import threading
 import time
 from common import consts
 from core.msghandler import MessageNotifier, MessageHandler
+from core.transadapter import TransportAdapter
+from core.ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportMessageNotifier(MessageNotifier):
@@ -38,13 +39,13 @@ class TransportHandler(MessageHandler):
         self._transport_channel = None
         self._transport_client_id = None
         self._transport_adapter = None
+        self._default_transport_adapter = DefaultTransportAdapter
 
     def do_listen(self):
         pass
 
     def do_start(self):
-        if self.is_enabled():
-            self._transport_thread.start()
+        self._transport_thread.start() if self.is_enabled() else None
 
     def listen(self):
         while self.is_running():
@@ -77,7 +78,7 @@ class TransportHandler(MessageHandler):
         return self._transport_client_id
 
     def get_transport_adapter(self):
-        return self._transport_adapter
+        return self._transport_adapter if self._transport_adapter else self._default_transport_adapter
 
     def set_transport_index(self, index):
         self._transport_index = index
@@ -103,21 +104,28 @@ class TransportHandler(MessageHandler):
     def set_transport_adapter(self):
         return self._transport_adapter
 
+    def set_default_transport_adapter(self, adapter: TransportAdapter):
+        self._default_transport_adapter = adapter
+
     def get_config_value(self, key, def_value):
         config_key = str(key).format(self._transport_index)
         return super(TransportHandler, self).get_config_value(config_key, def_value)
 
     def connect(self):
-        raise NotImplementedError("not implemented here")
+        pass
 
     def disconnect(self):
-        raise NotImplementedError("not implemented here")
+        pass
 
     def publish_message(self, message_obj):
         raise NotImplementedError("not implemented here")
 
     def notify_server(self, message_obj):
-        raise NotImplementedError("notify_server not implemented here")
+        self.connect()
+        try:
+            self.publish_message(message_obj)
+        finally:
+            self.disconnect()
 
     def setup_transport(self):
         self._transport_address = self.get_config_value(consts.MQ_TRANSPORT_ADDR, "127.0.0.1")

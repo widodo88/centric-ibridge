@@ -18,7 +18,7 @@ import logging
 import traceback
 from common import consts
 from common import modconfig
-from core.objfactory import AbstractFactory
+from common.objfactory import AbstractFactory
 from common.objloader import ObjectLoader, ObjectCreator
 from common.startable import Startable, StartableManager
 from common.msgobject import MessageEvent, AbstractMessage
@@ -120,6 +120,10 @@ class BaseExecutor(Startable, ExecutorLoader, ExecutorCreator):
         logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, instance))
         return instance
 
+    def _create_obj_module(self, str_mod, message_obj, props):
+        klass = self._get_klass(str_mod, props=props)
+        return self._create_instance(klass, message_obj)
+
     def _collect_object_module(self, message_obj: AbstractMessage) -> [[object, str]]:
         props = self.get_event_properties() if isinstance(message_obj, MessageEvent) \
             else self.get_command_properties()
@@ -130,12 +134,10 @@ class BaseExecutor(Startable, ExecutorLoader, ExecutorCreator):
                 str_mod = None if message_obj.EVENT not in section_props else section_props[message_obj.EVENT]
                 list_mod = [str_item.split(":") for str_item in (str_mod.split(",") if str_mod else [])]
                 for str_mod, str_func in list_mod:
-                    klass = self._get_klass(str_mod, props=section_props)
-                    module = self._create_instance(klass, message_obj)
+                    module = self._create_obj_module(str_mod, message_obj, section_props)
                     ret_list.append([module, str_func])
             else:
-                klass = self._get_klass(message_obj, props=props)
-                module = self._create_instance(klass, message_obj)
+                module = self._create_obj_module(message_obj, message_obj, props)
                 ret_list.append([module, None])
         except Exception as ex:
             logging.exception(ex)
@@ -272,14 +274,17 @@ class MessageExecutionManager(BaseExecutionManager, MessageReceiver):
     def __init__(self, config, klass=ModuleExecutor):
         super(MessageExecutionManager, self).__init__(config=config, klass=klass)
 
-    def on_message_received(self, obj, message: str):
+    def process_message(self, message: str):
         try:
             message_object = MessageFactory.generate(message) if message else None
-            if (not message_object) or (not self.is_running()):
-                logging.error("Could not parse message correctly: {0}".format(message))
-                return
-            module_object = self.get_valid_module(message_object)
-            module_object = module_object if module_object else self._register_module_object(message_object)
-            module_object.submit_task(message_object) if module_object else None
+            if message_object:
+                module_object = self.get_valid_module(message_object)
+                module_object = module_object if module_object else self._register_module_object(message_object)
+                module_object.submit_task(message_object) if module_object else None
+            else:
+                logging.error("Could not extract message correctly: {0}".format(message))
         except Exception as ex:
             logging.exception(ex)
+
+    def on_message_received(self, obj, message: str):
+        self.process_message(message) if self.is_running() else None

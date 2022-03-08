@@ -13,21 +13,26 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from utils import oshelper
-from core.transport.xsocktransport import UnixSocketTransport
-from core.transport.localtransport import LocalhostTransport
-from core.transfactory import TransportPreparer
-
-
-def get_local_transport():
-    return UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-        else LocalhostTransport.get_default_instance()
+from http import HTTPStatus
+from flask_restx import abort
+from common.configurable import Configurable
+from common.singleton import SingletonObject
+from utils.restutils import err_resp
 
 
-def get_mq_transport(config, index):
-    transport = TransportPreparer.create_transport(config, index)
-    if transport and not transport.is_configured():
-        transport.setup_transport()
-        transport.configure()
-    return transport
+class BaseAuthService(Configurable, SingletonObject):
+
+    def perform_login(self, login_data: dict):
+        return err_resp("Error occurs during authenticating!", "unimplemented_method", 500)
+
+    def login(self, login_data: dict):
+        if not login_data:
+            return err_resp("Login information must be provided", "bad_login", 400)
+        return self.perform_login(login_data)
+
+
+
+
+
+
+

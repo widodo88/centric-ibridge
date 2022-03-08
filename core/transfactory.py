@@ -17,10 +17,10 @@
 from common import consts
 from common.objloader import ObjectLoader, ObjectCreator
 from common.singleton import SingletonObject
-from core.objfactory import AbstractFactory
+from common.objfactory import AbstractFactory
 from core.transhandler import TransportHandler, TransportMessageNotifier
 from core.transadapter import TransportAdapter
-from ext.adapters.defaultadapter import DefaultTransportAdapter
+from core.ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportFactory(AbstractFactory, SingletonObject, ObjectCreator):
@@ -74,7 +74,8 @@ class TransportPreparer(ObjectLoader, ObjectCreator):
     @classmethod
     def prepare_adapter(cls, transport, config, listener, container):
         adapter_name = transport.get_transport_adapter()
-        adapter_klass = cls.load_adapter_klass(adapter_name) if adapter_name else DefaultTransportAdapter
+        adapter_klass = cls.load_adapter_klass(adapter_name) if adapter_name and isinstance(adapter_name, str) else adapter_name
+        adapter_klass = adapter_klass if adapter_klass and issubclass(adapter_klass, TransportAdapter) else DefaultTransportAdapter
         adapter: TransportAdapter = cls.__create_instance__(adapter_klass)
         adapter.set_configuration(config)
         adapter.add_listener(listener)

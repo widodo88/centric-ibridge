@@ -13,21 +13,9 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from utils import oshelper
-from core.transport.xsocktransport import UnixSocketTransport
-from core.transport.localtransport import LocalhostTransport
-from core.transfactory import TransportPreparer
+from flask_restx import Resource
 
 
-def get_local_transport():
-    return UnixSocketTransport.get_default_instance() if not oshelper.is_windows() \
-        else LocalhostTransport.get_default_instance()
-
-
-def get_mq_transport(config, index):
-    transport = TransportPreparer.create_transport(config, index)
-    if transport and not transport.is_configured():
-        transport.setup_transport()
-        transport.configure()
-    return transport
+class RootApiResource(Resource):
+    def get(self):
+        return {'message': 'Welcome to iBridge Server'}
