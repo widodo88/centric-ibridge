@@ -13,8 +13,6 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from http import HTTPStatus
-from flask_restx import abort
 from common.configurable import Configurable
 from common.singleton import SingletonObject
 from utils.restutils import err_resp

@@ -13,7 +13,6 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
 from .v1.extensions import ExtensionConfigurator
 from .v1 import register_rest_modules
 from .mainresource import RootApiResource

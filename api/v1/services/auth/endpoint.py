@@ -20,7 +20,7 @@ from api.v1.extensions import authenticator
 from utils import restutils
 from .schema import LoginSchema
 from flask_jwt_extended import (
-    config, set_access_cookies, create_access_token, create_refresh_token)
+    config, set_access_cookies, create_access_token)
 
 ns = Namespace('API: Authorization', 'Authorize access to API service')
 login_schema = LoginSchema()
