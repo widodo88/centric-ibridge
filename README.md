@@ -11,9 +11,9 @@ This repository will also provides as read-only, which means you should fork to 
 ## Key Features
 
 - Daemon based using MQ subcriber (support MQTT, AMQP, and STOMP v2)
-- Module wise Thread Pool instead of Global process pool 
-- Module wise Message Queue instead of global queue
-- Publishing event through command line
+- Flexible module type Thread Pool/Process Pool/Sub Process + Thread Pool 
+- Publishing event and command through command line
+- API Service through FLASK + JWT + LDAP
 
 ## Installation
 
@@ -66,17 +66,3 @@ python ./ibridge.py stop
 ## Debugging API Service
 
 It is recommended disable ```restapi.enabled``` in .env file, and use irest.py as entry point for debugging purpose.
-
-## API Service Authentication
-
-API Service use OAuth2 as authentication mechanis, and store user database in sqlite database. Securing and 
-setting-up first user is a bit tricky.
-
-- Setup the ```restapi.secret.key``` in .env variable as application secret key
-- Remove ```restapi.admin.username``` from .env variable to enable first user registration
-- Start the Bridge
-- Access API service through 127.0.0.1:8000 and register an admin user 
-- After registration successfull, stop the Bridge
-- Add ```restapi.admin.username``` and define admin user in the .env file
-- Start the Bridge
-- Done.
