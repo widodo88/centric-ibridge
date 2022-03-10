@@ -28,6 +28,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from multiprocessing_logging import install_mp_handler
 from core.baserestsrv import BaseRestServer
 from core.redisprovider import RedisPreparer
+from core.flask.flaskapi import PrefixMiddleware
 from logging.handlers import TimedRotatingFileHandler
 from api import register_rest_modules
 from api import RootApiResource
@@ -41,9 +42,11 @@ class RestApp(BaseRestServer):
         consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
         RedisPreparer.prepare_redis(config, self)
         rest_app = Flask("iBridge Server",
-                         root_path=config.get(consts.RESTAPI_ROOT_PATH),
+                         root_path='/',
                          static_url_path="/static",
                          static_folder=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static"))
+        rest_app.wsgi_app = PrefixMiddleware(rest_app.wsgi_app,
+                                             prefix=self.get_config_value(consts.RESTAPI_ROOT_PATH, '/'))
         rest_app.wsgi_app = ProxyFix(rest_app.wsgi_app)
         rest_app.add_url_rule('/', None, self.root_index)
         rest_app.after_request_funcs.setdefault(None, []).append(self.refresh_token)

@@ -3,6 +3,7 @@
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 ENV_DIR="$BASE_DIR/venv/bin"
 PYTHON="python3"
+export PYTHONPATH="$BASE_DIR"
 INTERPRETER="$ENV_DIR/$PYTHON"
 exec $INTERPRETER "$0" "$@"
 exit 127

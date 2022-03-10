@@ -45,6 +45,8 @@ class RESTServerStarter(BaseAppServer):
                 '-w', '8',
                 '-b', '0.0.0.0:8080',
                 '-n', 'centric-rest-ibridge',
+                '--chdir', consts.DEFAULT_SCRIPT_PATH,
+                '--pythonpath', consts.DEFAULT_SCRIPT_PATH,
                 '-p', str(pid_file),
                 '--error-logfile', consts.DEFAULT_RESTAPI_LOG_FILE
             ]

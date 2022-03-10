@@ -43,10 +43,10 @@ class BridgeApp(BaseAppServer, ObjectLoader):
 
     def __init__(self):
         super(BridgeApp, self).__init__()
-        self._should_join = False
         self.parser = argparse.ArgumentParser(prog='ibridge', description='Integration Bridge Server v3.0')
 
     def do_configure(self):
+        self.service_enabled = False
         self.parse_config()
         self.set_transport_listener(self.create_transport_listener())
 
@@ -72,9 +72,6 @@ class BridgeApp(BaseAppServer, ObjectLoader):
                                     action=StoreDictKeyPair, metavar="key1=val1")
         command_parser.set_defaults(func=self.do_send_command)
         super(BridgeApp, self).do_configure()
-
-    def do_start(self):
-        super(BridgeApp, self).do_start()
         self.evaluate_args(self.parser.parse_args())
 
     def evaluate_args(self, args):
@@ -101,40 +98,30 @@ class BridgeApp(BaseAppServer, ObjectLoader):
         return server_instance
 
     def configure_services(self):
+        self.add_object(self.configure_shutdown_monitor())
         service_enabled = [service for service in consts.SERVICES_AVAILABLE if service[1]]
         for service in service_enabled:
             server_instance = self.configure_app_server(service[0])
             self.add_object(server_instance) if server_instance else None
 
     def do_start_command(self, args):
+        print("Starting", end=" ... ")
         logging.info(self.parser.description)
-        consts.prepare_path(False, False, True)
-        print("Starting server", end=" ...")
-        self.add_object(self.configure_shutdown_monitor())
+        self.service_enabled = True
         self.configure_services()
-        self._should_join = True
-        print("Done")
 
     def do_stop_command(self, args):
-        print("Stopping ", end=" ...")
-        try:
-            self.send_shutdown_signal()
-            print("Done")
-        except Exception as ex:
-            print("Unable to shutdown \n\nReason: {0}".format(ex))
+        print("Stopping ", end=" ... ")
+        self.send_shutdown_signal()
 
     def do_alt_stop_command(self, args):
         app_server_klass = self._get_klass(consts.BRIDGE_SERVICE)
         if not issubclass(app_server_klass, BaseAppServer):
             return
-        print("Stopping ", end=" ...")
+        print("Stopping ", end=" ... ")
         bridge_server = app_server_klass.get_default_instance()
         bridge_server.set_configuration(self.get_configuration())
-        try:
-            bridge_server.alt_shutdown_signal()
-            print("Done")
-        except Exception as ex:
-            print("Unable to shutdown \n\nReason: {0}".format(ex))
+        bridge_server.alt_shutdown_signal()
 
     def do_send_notification(self, args):
         print("Notifying ", end=" ...")
@@ -148,11 +135,7 @@ class BridgeApp(BaseAppServer, ObjectLoader):
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
         bridge_server = appserver_klass.get_default_instance()
         bridge_server.set_configuration(self.get_configuration())
-        try:
-            bridge_server.notify_server(message_object)
-            print("Done")
-        except Exception as ex:
-            print("Unable to send notification \n\nReason: {0}".format(ex))
+        bridge_server.notify_server(message_object)
 
     def do_send_command(self, args):
         print("Sending command ", end=" ...")
@@ -166,11 +149,7 @@ class BridgeApp(BaseAppServer, ObjectLoader):
         appserver_klass = self._get_klass(consts.BRIDGE_SERVICE)
         bridge_server = appserver_klass.get_default_instance()
         bridge_server.set_configuration(self.get_configuration())
-        try:
-            bridge_server.notify_server(message_object)
-            print("Done")
-        except Exception as ex:
-            print("Unable to send notification \n\nReason: {0}".format(ex))
+        bridge_server.notify_server(message_object)
 
     def send_shutdown_signal(self):
         try:
@@ -202,7 +181,7 @@ class BridgeApp(BaseAppServer, ObjectLoader):
         shutdown_monitor.join() if shutdown_monitor else None
 
     def listen(self):
-        self.join() if self._should_join else None
+        self.join() if self.service_enabled else None
 
 
 def configure_logging(config):
@@ -224,10 +203,14 @@ def main(argv=None):
     consts.prepare_path()
     config = dotenv_values("{0}/.env".format(consts.DEFAULT_SCRIPT_PATH))
     configure_logging(config)
-    main_app = BridgeApp()
-    main_app.set_configuration(config)
-    main_app.start()
-    main_app.listen()
+    try:
+        main_app = BridgeApp()
+        main_app.set_configuration(config)
+        main_app.start()
+        print("Done")
+        main_app.listen() if main_app.is_enabled() else None
+    except Exception as ex:
+        print("Unable to send notification \n\nReason: {0}".format(ex))
 
 
 if __name__ == '__main__':

@@ -145,7 +145,7 @@ class BaseExecutor(Startable, ExecutorLoader, ExecutorCreator):
 
 
 class ModuleExecutor(BaseExecutor):
-    def __init__(self, config=None, module=None, workers=4):
+    def __init__(self, config=None, module=None, workers=8):
         super(ModuleExecutor, self).__init__(config=config, module=module)
         self._max_processes = workers
         self._pool = None
