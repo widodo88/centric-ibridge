@@ -18,9 +18,9 @@ from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
 from api.v1.extensions import authenticator
 from utils import restutils
-from .schema import LoginSchema
+from api.v1.services.auth.schema import LoginSchema
 from flask_jwt_extended import (
-    config, set_access_cookies, create_access_token)
+    config, set_access_cookies, create_access_token, create_refresh_token)
 
 ns = Namespace('API: Authorization', 'Authorize access to API service')
 login_schema = LoginSchema()

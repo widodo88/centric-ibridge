@@ -63,7 +63,7 @@ class ProcessThreadExecutor(BaseExecutor):
     Process based message execution manager
     """
 
-    def __init__(self, config=None, module=None, workers=4):
+    def __init__(self, config=None, module=None, workers=16):
         super(ProcessThreadExecutor, self).__init__(config=config, module=module)
         self._queue = None
         self._process = None

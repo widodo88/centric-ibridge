@@ -13,11 +13,8 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-try:
-    import pybase64 as base64
-except:
-    import base64
 import os
+import base64
 from common import consts
 from core.flask.flaskapi import FlaskApi
 from flask_cors import CORS
@@ -25,7 +22,7 @@ from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
 from core.baseappsrv import BaseAppServer
 from api.mainresource import RootApiResource
-from api.v1.ldapauth import LDAPAuthService
+from api.v1.security.ldapauth import LDAPAuthService
 
 authorization = {"Bearer": {"type": "apiKey",
                             "in": "header",

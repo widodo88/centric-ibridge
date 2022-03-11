@@ -216,7 +216,6 @@ class Startable(Configurable):
         try:
             if (not self._enabled) or (self._state in [Startable.STARTED, Startable.STARTING]):
                 return
-            logging.info("{} - Started".format(self.__class__.__name__))
             self._set_starting()
             self.do_start()
             self._set_started()
@@ -235,7 +234,6 @@ class Startable(Configurable):
             self._set_stopping()
             self.do_stop()
             self._set_stopped()
-            logging.info("{} - Stopped".format(self.__class__.__name__))
         except Exception as exc:
             self._set_failed(exc)
             raise exc
@@ -273,6 +271,8 @@ class Startable(Configurable):
             listener.on_starting(self)
 
     def _set_started(self):
+        if self.is_enabled():
+            logging.info("{} - Started".format(self.__class__.__name__))
         self._state = Startable.STARTED
         for listener in self._listeners:
             listener.on_started(self)
@@ -283,6 +283,8 @@ class Startable(Configurable):
             listener.on_stopping(self)
 
     def _set_stopped(self):
+        if self.is_enabled():
+            logging.info("{} - Stopped".format(self.__class__.__name__))
         self._state = Startable.STOPPED
         for listener in self._listeners:
             listener.on_stopped(self)

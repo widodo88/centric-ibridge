@@ -39,11 +39,11 @@ class RedisTransport(TransportHandler):
             pubsub.subscribe(self.get_transport_channel())
             try:
                 while self.is_running() and pubsub.subscribed:
-                    response = pubsub.handle_message(pubsub.parse_response(block=False, timeout=1))
+                    response = pubsub.handle_message(pubsub.parse_response(block=False, timeout=0.5))
                     if response and isinstance(response, dict):
                         self.handle_message(response.get('data'))
                     else:
-                        time.sleep(0.4)
+                        time.sleep(0.2)
             except Exception as ex:
                 logging.exception(ex)
             finally:

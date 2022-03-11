@@ -13,24 +13,3 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from common.configurable import Configurable
-from common.singleton import SingletonObject
-from utils.restutils import err_resp
-
-
-class BaseAuthService(Configurable, SingletonObject):
-
-    def perform_login(self, login_data: dict):
-        raise NotImplementedError()
-
-    def login(self, login_data: dict):
-        if not login_data:
-            return err_resp("Login information must be provided", "bad_login", 400)
-        return self.perform_login(login_data)
-
-
-
-
-
-
-

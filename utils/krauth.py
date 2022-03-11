@@ -11,10 +11,7 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
-try:
-    import pybase64 as base64
-except:
-    import base64
+
 import re
 import hashlib
 import requests
@@ -24,6 +21,11 @@ from Crypto.Cipher import AES
 from requests.utils import parse_dict_header
 from requests.cookies import extract_cookies_to_jar
 from requests.compat import builtin_str, is_py2
+
+try:
+    import pybase64 as base64
+except:
+    import base64
 
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
