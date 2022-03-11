@@ -21,7 +21,7 @@ from utils.restutils import err_resp
 class BaseAuthService(Configurable, SingletonObject):
 
     def perform_login(self, login_data: dict):
-        return err_resp("Error occurs during authenticating!", "unimplemented_method", 500)
+        raise NotImplementedError()
 
     def login(self, login_data: dict):
         if not login_data:

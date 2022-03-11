@@ -22,7 +22,7 @@ from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
 from core.baseappsrv import BaseAppServer
 from api.mainresource import RootApiResource
-from api.v1.ldapauth import LDAPAuthService
+from api.v1.security.ldapauth import LDAPAuthService
 
 authorization = {"Bearer": {"type": "apiKey",
                             "in": "header",
