@@ -141,11 +141,11 @@ class Startable(Configurable):
 
     def do_start(self):
         """An abstract method to perform component start routines"""
-        pass
+        ...
 
     def do_stop(self):
         """An abstract method to perform component srtop routines"""
-        pass
+        ...
 
     def is_enabled(self) -> bool:
         """
@@ -358,4 +358,5 @@ class StartableManager(Startable):
 
 
 class LifeCycleManager(StartableManager, SingletonObject):
-    pass
+    ...
+

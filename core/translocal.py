@@ -26,7 +26,7 @@ class LocalTransportHandler(TransportHandler, SingletonObject):
         super(LocalTransportHandler, self).__init__(config=config, transport_index=transport_index)
 
     def send_shutdown_signal(self):
-        pass
+        ...
 
     def prepare_listening(self):
         raise NotImplementedError("not implemented here")

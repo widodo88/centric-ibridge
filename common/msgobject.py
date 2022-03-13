@@ -53,6 +53,7 @@ class Extractable(object):
 class BaseMessage(Extractable):
 
     def __init__(self, msg_type=None):
+        super(BaseMessage, self).__init__()
         self.message_mode = msg_type
 
 
