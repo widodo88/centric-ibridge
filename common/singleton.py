@@ -23,7 +23,7 @@ class SingletonObject(object):
 
     @classmethod
     def _configure_singleton(cls, *args, **kwargs):
-        pass
+        ...
 
     @classmethod
     def get_default_instance(cls, *args, **kwargs):

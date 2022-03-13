@@ -13,10 +13,10 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
 import logging
 from core.baseappsrv import BaseAppServer
 from core.redisprovider import RedisPreparer
+from core.minioprovider import MinioPreparer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
@@ -33,7 +33,8 @@ class BridgeServer(BaseAppServer):
 
     def do_configure(self):
         cfg = self.get_configuration()
-        RedisPreparer.prepare_redis(cfg, self)
+        RedisPreparer.prepare(cfg, self)
+        MinioPreparer.prepare(cfg, self)
         transport_listener = self.configure_transport()
         TransportPreparer.prepare_transports(cfg, transport_listener, self)
 
@@ -44,15 +45,12 @@ class BridgeServer(BaseAppServer):
         message_listener = MessageNotifier()
         global_pool = self.get_config_value(consts.USE_GLOBAL_POOL, "false")
         global_pool = global_pool.lower() == "true"
-        if not self.is_production_mode():
-            execution_manager = MessageExecutionManager(cfg)
-            execution_manager.simple_model = global_pool
+        if self.is_production_mode():
+            execution_manager = MessageExecutionManager(cfg, ProcessExecutor) if global_pool \
+                else ProcessMessageExecutionManager(cfg)
         else:
-            if global_pool:
-                execution_manager = MessageExecutionManager(cfg, ProcessExecutor)
-                execution_manager.simple_model = global_pool
-            else:
-                execution_manager = ProcessMessageExecutionManager(cfg)
+            execution_manager = MessageExecutionManager(cfg)
+        execution_manager.simple_model = global_pool
         execution_manager.register_listener(message_listener)
         self.add_object(execution_manager)
 

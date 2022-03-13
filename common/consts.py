@@ -46,6 +46,12 @@ RESTAPI_LOG_FILE = "restapi.log.file"
 REDIS_ENABLED = "redis.enabled"
 REDIS_URL = "redis.url"
 
+MINIO_ENABLED = "minio.enabled"
+MINIO_ADDRESS = "minio.address"
+MINIO_ACCESS_KEY = "minio.access.key"
+MINIO_SECRET_KEY = "minio.secret.key"
+MINIO_SECURED = "minio.secured"
+
 LDAP_ADDRESS = "ldap.address"
 LDAP_USER_PREFIX = "ldap.user.prefix"
 LDAP_USER_SUFFIX = "ldap.user.suffix"

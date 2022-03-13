@@ -29,7 +29,7 @@ class Configurable(object):
 
     def do_configure(self):
         """An abstract method to perform component configuring routines"""
-        pass
+        ...
 
     def is_configured(self) -> bool:
         return self._configured != Configurable.UNCONFIGURED

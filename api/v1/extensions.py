@@ -17,12 +17,14 @@ import os
 import base64
 from common import consts
 from core.flask.flaskapi import FlaskApi
+from core.flask.redsession import FlaskRedisSession
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
 from core.baseappsrv import BaseAppServer
 from api.mainresource import RootApiResource
 from api.v1.security.ldapauth import LDAPAuthService
+from core.redisprovider import RedisPreparer
 
 authorization = {"Bearer": {"type": "apiKey",
                             "in": "header",
@@ -38,6 +40,7 @@ cors = CORS()
 marshmallow = Marshmallow()
 jwt = JWTManager()
 authenticator = LDAPAuthService.get_default_instance()
+redis_session = FlaskRedisSession()
 
 
 # Register a callback function that loads a user from your database whenever
@@ -57,6 +60,8 @@ class ExtensionConfigurator(object):
         app = main_app.get_rest_app()
         config = main_app.get_configuration()
         cors.init_app(app)
+        redis_session.redis_enabled = RedisPreparer.is_service_enabled(main_app)
+        redis_session.init_app(app)
         marshmallow.init_app(app)
         secret_key = config[consts.RESTAPI_SECRET_KEY] if consts.RESTAPI_SECRET_KEY in config else None
         secret_key = secret_key if secret_key else base64.b64encode(os.urandom(32)).decode("utf-8")
