@@ -15,6 +15,7 @@
 
 # List of available modules:
 #       format: <MODULE>@<SUBMODULE>=implementation.full.class.name.and.path
+#
 # example:
 #  MODULE@EXAMPLE=modules.example.excmd.ExampleCommand
 MODULE@EXAMPLE=modules.example.excmd.ExampleCommand

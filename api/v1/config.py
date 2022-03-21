@@ -13,8 +13,23 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from api.v1 import register_rest_modules
-from api.v1.extensions import ExtensionConfigurator
-from api.mainresource import RootApiResource
+from common import consts
+from core.baseappsrv import BaseAppServer
 
-__all__ = ['register_rest_modules', 'ExtensionConfigurator', 'RootApiResource']
+
+class Configuration(object):
+
+    SQLALCHEMY_BINDS = dict()
+
+
+def register_rest_databases(app_srv: BaseAppServer):
+    config = app_srv.get_configuration()
+    rest_databases = config[consts.RESTAPI_AVAILABLE_DATABASES] if \
+        consts.RESTAPI_AVAILABLE_DATABASES in config else None
+    rest_databases = rest_databases if rest_databases else ""
+    rest_databases = [service.strip() for service in rest_databases.split(",") if service.strip() not in [None, '']]
+    for database in rest_databases:
+        key, value = database.split('=', 1)
+        Configuration.SQLALCHEMY_BINDS[key] = value
+
+

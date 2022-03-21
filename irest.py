@@ -28,7 +28,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from multiprocessing_logging import install_mp_handler
 from core.baserestsrv import BaseRestServer
 from core.redisprovider import RedisPreparer
-from core.minioprovider import MinioPreparer
+from core.ext.minioprovider import MinioPreparer
 from core.flask.flaskapi import PrefixMiddleware
 from logging.handlers import TimedRotatingFileHandler
 from api import register_rest_modules

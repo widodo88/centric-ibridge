@@ -86,13 +86,19 @@ class ProcessThreadExecutor(BaseExecutor):
     def submit_task(self, message_obj: AbstractMessage):
         self._queue.put(message_obj)
 
-    def daemonize_process(self):
+    def prepare_handler(self):
         _handler = ModuleExecutor(self.get_configuration(), self.get_module(), self._max_processes)
         _handler.set_properties(self.get_command_properties(), self.get_event_properties())
         _handler.set_module_configuration(self.get_module_configuration())
         _handler.configure()
         _handler.start()
         try:
+            yield _handler
+        finally:
+            _handler.stop()
+
+    def daemonize_process(self):
+        with self.prepare_handler() as _handler:
             while True:
                 try:
                     message_obj = self._queue.get(True, 0.1)
@@ -106,8 +112,6 @@ class ProcessThreadExecutor(BaseExecutor):
                             logging.exception(ex)
                 except Empty:
                     time.sleep(0.1)
-        finally:
-            _handler.stop()
 
 
 class ProcessMessageExecutionManager(MessageExecutionManager):

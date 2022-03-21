@@ -60,7 +60,7 @@ class RedisTransport(TransportHandler):
         self._client.close() if self._client else None
 
     def publish_message(self, message_obj):
-        self._client.publish(self.get_transport_channel(), message_obj.encode().decode("utf-8"))
+        self._client.publish(self.get_transport_channel(), message_obj.encode())
 
     @staticmethod
     def _get_provider():

@@ -15,7 +15,10 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from flask_restx import Api
 from core.restprep import RESTModulePreparer
-from api.v1.services.auth.endpoint import ns
+from api.v1.services.auth.namespace import ns
+
+# importing modules
+import api.v1.services.auth.endpoint
 
 
 class AuthModulePreparer(RESTModulePreparer):

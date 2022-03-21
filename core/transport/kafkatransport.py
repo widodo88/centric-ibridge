@@ -62,7 +62,7 @@ class KafkaTransport(TransportHandler):
         address = "{}:{}".format(self.get_transport_address(), self.get_transport_port())
         kafka_topic = self._transport_channel.split(",") if isinstance(self._transport_channel, str) else [""]
         publisher = KafkaProducer(bootstrap_servers=address)
-        publisher.send(kafka_topic[0], message_obj.encode().decode("utf-8"))
+        publisher.send(kafka_topic[0], message_obj.encode())
 
 
         

@@ -37,6 +37,7 @@ RESTAPI_ROOT_PATH = "restapi.root.path"
 RESTAPI_SECRET_KEY = "restapi.secret.key"
 RESTAPI_ADMIN_USERNAME = "restapi.admin.username"
 RESTAPI_AVAILABLE_SERVICES = "restapi.available.services"
+RESTAPI_AVAILABLE_DATABASES = "restapi.available.databases"
 
 LOG_LEVEL = "log.level"
 LOG_FORMAT = "log.format"
@@ -53,6 +54,8 @@ MINIO_SECRET_KEY = "minio.secret.key"
 MINIO_SECURED = "minio.secured"
 
 LDAP_ADDRESS = "ldap.address"
+LDAP_BIND_DN = "ldap.bind.dn"
+LDAP_BIND_PASSWD = "ldap.bind.password"
 LDAP_USER_PREFIX = "ldap.user.prefix"
 LDAP_USER_SUFFIX = "ldap.user.suffix"
 

@@ -16,7 +16,7 @@
 import logging
 from core.baseappsrv import BaseAppServer
 from core.redisprovider import RedisPreparer
-from core.minioprovider import MinioPreparer
+from core.ext.minioprovider import MinioPreparer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
