@@ -13,21 +13,22 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from flask_restx import Api
-from core.restprep import RESTModulePreparer
-from api.v1.services.auth.namespace import ns
 
-# importing modules
-import api.v1.services.auth.endpoint
+from core.transadapter import TransportAdapter
 
 
-class AuthModulePreparer(RESTModulePreparer):
+class DefaultTransportAdapter(TransportAdapter):
+    """Default Transport Adapter"""
 
     def __init__(self, config=None):
-        super(AuthModulePreparer, self).__init__(config=config)
+        super(DefaultTransportAdapter, self).__init__(config=config)
 
-    def do_configure(self):
-        super(AuthModulePreparer, self).do_configure()
+    def transform_message(self, obj: object, message: str) -> str:
+        """Transform message from outside to be readable by the bridge
 
-    def prepare_router(self, api: Api):
-        api.add_namespace(ns, '/auth')
+        This is the default adapter, by default it just pass received message.
+        When require to transform stream message from outside system,
+        e.g: celery, or else, create a new class inheriting Transport Adapter,
+        and reimplement the transformation on transform_message"""
+
+        return message

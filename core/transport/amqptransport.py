@@ -86,5 +86,5 @@ class AmqpTransport(TransportHandler):
         channel = self._connection.channel()
         channel.queue_declare(queue=self.get_transport_channel())
         channel.basic_publish(exchange='', routing_key=self.get_transport_channel(),
-                              body=message_obj.encode().decode("utf-8"))
+                              body=message_obj.encode())
 

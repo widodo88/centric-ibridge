@@ -13,26 +13,23 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from threading import RLock
+from common import consts
+from core.baseappsrv import BaseAppServer
 
 
-class SingletonObject(object):
+class Configuration(object):
 
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
+    SQLALCHEMY_BINDS = dict()
 
-    @classmethod
-    def _configure_singleton(cls, *args, **kwargs):
-        ...
 
-    @classmethod
-    def get_default_instance(cls, *args, **kwargs):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-                cls._configure_singleton(*args, **kwargs)
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()
+def register_rest_databases(app_srv: BaseAppServer):
+    config = app_srv.get_configuration()
+    rest_databases = config[consts.RESTAPI_AVAILABLE_DATABASES] if \
+        consts.RESTAPI_AVAILABLE_DATABASES in config else None
+    rest_databases = rest_databases if rest_databases else ""
+    rest_databases = [service.strip() for service in rest_databases.split(",") if service.strip() not in [None, '']]
+    for database in rest_databases:
+        key, value = database.split('=', 1)
+        Configuration.SQLALCHEMY_BINDS[key] = value
+
+

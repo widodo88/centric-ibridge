@@ -23,7 +23,7 @@ from core.ext.adapters.defaultadapter import DefaultTransportAdapter
 
 
 class TransportMessageNotifier(MessageNotifier):
-    pass
+    ...
 
 
 class TransportHandler(MessageHandler):

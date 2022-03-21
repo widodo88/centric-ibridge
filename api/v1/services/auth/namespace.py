@@ -13,26 +13,6 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from threading import RLock
+from flask_restx import Namespace
 
-
-class SingletonObject(object):
-
-    VM_DEFAULT = None
-    SINGLETON_LOCK = RLock()
-
-    @classmethod
-    def _configure_singleton(cls, *args, **kwargs):
-        ...
-
-    @classmethod
-    def get_default_instance(cls, *args, **kwargs):
-        cls.SINGLETON_LOCK.acquire(blocking=True)
-        try:
-            if cls.VM_DEFAULT is None:
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-                cls._configure_singleton(*args, **kwargs)
-            return cls.VM_DEFAULT
-        finally:
-            cls.SINGLETON_LOCK.release()
+ns = Namespace('API: Authorization', 'Authorize access to API service')

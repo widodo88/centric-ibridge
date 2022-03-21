@@ -28,6 +28,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from multiprocessing_logging import install_mp_handler
 from core.baserestsrv import BaseRestServer
 from core.redisprovider import RedisPreparer
+from core.ext.minioprovider import MinioPreparer
 from core.flask.flaskapi import PrefixMiddleware
 from logging.handlers import TimedRotatingFileHandler
 from api import register_rest_modules
@@ -40,7 +41,8 @@ class RestApp(BaseRestServer):
         super(RestApp, self).do_configure()
         config = self.get_configuration()        
         consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
-        RedisPreparer.prepare_redis(config, self)
+        RedisPreparer.prepare(config, self)
+        MinioPreparer.prepare(config, self)
         rest_app = Flask("iBridge Server",
                          root_path='/',
                          static_url_path="/static",

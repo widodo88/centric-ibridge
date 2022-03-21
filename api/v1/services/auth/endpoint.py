@@ -15,14 +15,14 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from http import HTTPStatus
 from flask import request, jsonify
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Resource, fields
 from api.v1.extensions import authenticator
 from utils import restutils
 from api.v1.services.auth.schema import LoginSchema
+from api.v1.services.auth.namespace import ns
 from flask_jwt_extended import (
-    config, set_access_cookies, create_access_token, create_refresh_token)
+    config, set_access_cookies, create_access_token)
 
-ns = Namespace('API: Authorization', 'Authorize access to API service')
 login_schema = LoginSchema()
 
 auth_login = ns.model(
@@ -62,9 +62,7 @@ class LoginResource(Resource):
         login_result, user_info = authenticator.login(login_data)
         if not login_result:
             return restutils.err_resp("Incorrect password or incomplete credentials", "authentication_error", 401)
-
-        user_claim = [(key, value) for key, value in user_info.items() if key in ['fullname', 'email']]
-        access_token = create_access_token(identity=login_data['username'], additional_claims={'user': dict(user_claim)})
+        access_token = create_access_token(identity=login_data['username'])
         resp = restutils.message(True, "Logged in")
         resp['access_token'] = access_token
         resp['expires_in'] = config.config.access_expires.seconds

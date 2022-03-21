@@ -13,16 +13,14 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-from threading import RLock
+import typing as t
 from redis import Redis
 from redis.connection import Connection, ConnectionPool
 from common import consts
-from common.singleton import SingletonObject
-from common.startable import Startable, LifeCycleManager
+from common.objpreparer import BaseObjectProvider, BaseObjectPreparer
 
 
-class RedisProvider(Startable, SingletonObject):
+class RedisProvider(BaseObjectProvider):
 
     def __init__(self, config=None):
         super(RedisProvider, self).__init__(config=config)
@@ -53,15 +51,12 @@ class RedisProvider(Startable, SingletonObject):
         return Redis(connection_pool=self._pool)
 
 
-class RedisPreparer(object):
+class RedisPreparer(BaseObjectPreparer):
 
     @classmethod
-    def prepare_redis(cls, cfg: dict, server_holder: LifeCycleManager):
-        redis_enabled = server_holder.get_config_value(consts.REDIS_ENABLED, "false")
-        redis_enabled = True if redis_enabled.lower() == "true" else False
-        if redis_enabled:
-            redis_instance = RedisProvider.get_default_instance()
-            if not redis_instance.is_configured():
-                redis_instance.set_configuration(cfg)
-                redis_instance.service_enabled = True
-                server_holder.add_object(redis_instance)
+    def _service_enabled_name(cls):
+        return consts.REDIS_ENABLED
+
+    @classmethod
+    def _get_provider_klass(cls) -> t.Type[BaseObjectProvider]:
+        return RedisProvider

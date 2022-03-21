@@ -13,7 +13,7 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+import typing as t
 from core.transhandler import TransportHandler
 from stompest.config import StompConfig
 from stompest.protocol.spec import StompSpec
@@ -27,9 +27,9 @@ class StompTransport(TransportHandler):
 
     def __init__(self, config=None, transport_index=0):
         super(StompTransport, self).__init__(config=config, transport_index=transport_index)
-        self._stomp_config = None
+        self._stomp_config: t.Optional[StompConfig] = None
         self._client_heartbeat = None
-        self._stomp_client = None
+        self._stomp_client: t.Optional[Stomp] = None
 
     def do_configure(self):
         super(StompTransport, self).do_configure()
@@ -76,4 +76,4 @@ class StompTransport(TransportHandler):
         self._stomp_client.disconnect()
 
     def publish_message(self, message_obj):
-        self._stomp_client.send(self.get_transport_channel(), message_obj.encode().decode("utf-8"))
+        self._stomp_client.send(self.get_transport_channel(), message_obj.encode())
