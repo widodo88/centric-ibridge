@@ -13,8 +13,9 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+import asyncio
 import logging
+import time
 from common.prochandler import CommandProcessor
 from common.msgobject import mq_event
 from utils.krclient import KRWebClient
@@ -88,3 +89,16 @@ class HREmpUpdateSearchDB(CommandProcessor):
         finally:
             self._solr_connection.close()
             logging.info("End Update Search for EMID: {0}".format(emid))
+
+    @mq_event
+    async def async_update_emp_search_db(self, cono=None, emid=None):
+        logging.info("Hello world")
+        await asyncio.sleep(10)
+        logging.info("Done")
+
+    @mq_event
+    def sync_update_emp_search_db(self, cono=None, emid=None):
+        logging.info("Hello world")
+        time.sleep(10)
+        logging.info("Done")
+

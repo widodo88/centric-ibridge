@@ -18,6 +18,7 @@ import logging
 
 PRODUCTION_MODE = "production.mode"
 USE_GLOBAL_POOL = "global.pool"
+USE_ASYNC = "async.mode"
 
 SHUTDOWN_ADDR = "shutdown.addr"
 SHUTDOWN_PORT = "shutdown.port"
@@ -31,6 +32,8 @@ C8_REST_USERNAME = "c8.rest.username"
 C8_REST_PASSWORD = "c8.rest.password"
 
 BRIDGE_ENABLED = "bridge.enabled"
+BRIDGE_DATABASE_ENABLED = "bridge.database.enabled"
+BRIDGE_AVAILABLE_DATABASES = "bridge.available.databases"
 
 RESTAPI_ENABLED = "restapi.enabled"
 RESTAPI_ROOT_PATH = "restapi.root.path"

@@ -58,7 +58,29 @@ class ProcessExecutor(ModuleExecutor):
         self._pool = Pool(processes=self._max_processes)
 
 
-class ProcessThreadExecutor(BaseExecutor):
+class BaseProcessExecutor(BaseExecutor):
+
+    def __init__(self, config=None, module_config=None, module=None):
+        super(BaseProcessExecutor, self).__init__(config=config, module_config=module_config, module=module)
+        self._process = None
+
+    def do_configure(self):
+        super(BaseProcessExecutor, self).do_configure()
+        self._process = mp.Process(target=self.subprocess_entry)
+        
+    def do_start(self):
+        super(BaseProcessExecutor, self).do_start()
+        self._process.start()
+
+    def do_stop(self):
+        super(BaseProcessExecutor, self).do_stop()
+        self._process.terminate()
+
+    def subprocess_entry(self):
+        raise NotImplementedError()
+
+
+class ProcessThreadExecutor(BaseProcessExecutor):
     """
     Process based message execution manager
     """
@@ -66,27 +88,20 @@ class ProcessThreadExecutor(BaseExecutor):
     def __init__(self, config=None, module=None, workers=16):
         super(ProcessThreadExecutor, self).__init__(config=config, module=module)
         self._queue = None
-        self._process = None
         self._max_processes = workers
 
     def do_configure(self):
         super(ProcessThreadExecutor, self).do_configure()
         self._queue = mp.Queue()
-        self._process = mp.Process(target=self.daemonize_process)
-
-    def do_start(self):
-        super(ProcessThreadExecutor, self).do_start()
-        self._process.start()
 
     def do_stop(self):
-        super(ProcessThreadExecutor, self).do_stop()
         self.submit_task(ShutdownMessage())
-        self._process.terminate()
+        super(ProcessThreadExecutor, self).do_stop()
 
     def submit_task(self, message_obj: AbstractMessage):
         self._queue.put(message_obj)
 
-    def daemonize_process(self):
+    def subprocess_entry(self):
         _handler = ModuleExecutor(self.get_configuration(), self.get_module(), self._max_processes)
         _handler.set_properties(self.get_command_properties(), self.get_event_properties())
         _handler.set_module_configuration(self.get_module_configuration())
@@ -112,5 +127,5 @@ class ProcessThreadExecutor(BaseExecutor):
 
 class ProcessMessageExecutionManager(MessageExecutionManager):
 
-    def __init__(self, config):
-        super(ProcessMessageExecutionManager, self).__init__(config=config, klass=ProcessThreadExecutor)
+    def __init__(self, config, klass=ProcessThreadExecutor):
+        super(ProcessMessageExecutionManager, self).__init__(config=config, klass=klass)

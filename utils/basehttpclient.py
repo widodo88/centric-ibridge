@@ -13,6 +13,7 @@
 #
 
 import requests
+import logging
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from utils.krauth import HTTPKrakenXBasicAuth, HTTPKrakenZBasicAuth
 from requests_jwt import JWTAuth
@@ -78,6 +79,8 @@ class BaseHttpClient(object):
 
     def get(self, resource, **kwargs):
         url = self._bind_url(resource)
+        logging.debug('self._bind {}'.format(url))
+
         cookies = self._parent.cookies if self._parent else self._cookies
         resp = requests.get(url, params=kwargs, auth=self.get_auth(), cookies=cookies)
         self.update_cookies(resp)

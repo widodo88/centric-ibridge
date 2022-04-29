@@ -13,17 +13,3 @@
 #
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from common import consts
-from core.baserestsrv import BaseRestServer
-from core.flask.modregister import ModuleRegisterer
-
-
-def register_rest_modules(app_srv: BaseRestServer):
-    from api.v1.extensions import flask_api
-    config = app_srv.get_configuration()
-    rest_services = config[consts.RESTAPI_AVAILABLE_SERVICES] if \
-        consts.RESTAPI_AVAILABLE_SERVICES in config else None
-    rest_services = rest_services if rest_services else ""
-    rest_services = [service.strip() for service in rest_services.split(",") if service.strip() not in [None, '']]
-    ModuleRegisterer.register_module(flask_api, rest_services)
-

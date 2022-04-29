@@ -17,7 +17,7 @@ try:
     import ujson as json
 except:
     import json
-
+import logging
 try:
     import pybase64 as base64
 except:
@@ -33,6 +33,7 @@ class HttpWebResource(object):
         self._resource = None
 
     def get(self, **kwargs):
+        logging.debug(self._resource)
         return self._service.do_get(self._resource, **kwargs)
 
     def post(self, data=None, json_data=None, **kwargs):
@@ -51,6 +52,7 @@ class HttpWebResource(object):
 
     def prepare_resource(self, service: object, resource: str):
         self._service = service
+        logging.debug('self._service {}'.format(resource))
         self._resource = resource
 
 
@@ -63,6 +65,7 @@ class HttpClient(BaseHttpClient):
         self._klass = klass
 
     def create_resource(self, resource):
+        logging.debug('create_resource {}'.format(resource))
         instance = object.__new__(self._klass)
         instance.__init__()
         if isinstance(instance, HttpWebResource):
@@ -70,6 +73,7 @@ class HttpClient(BaseHttpClient):
         return instance
 
     def do_get(self, resource, **kwargs):
+        logging.debug('do.get {}'.format(resource))
         return self.get(resource, **kwargs)
 
     def do_post(self, resource, data=None, json_data=None, **kwargs):

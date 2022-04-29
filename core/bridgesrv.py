@@ -17,11 +17,13 @@ import logging
 from core.baseappsrv import BaseAppServer
 from core.redisprovider import RedisPreparer
 from core.ext.minioprovider import MinioPreparer
+from core.ext.sqlalchemy import SQLAlchemyPreparer
 from core.shutdn import ShutdownHookMonitor
 from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
 from core.msgexec import MessageExecutionManager
 from core.msgpexec import ProcessMessageExecutionManager, ProcessExecutor
+from core.aio.msgpaioexec import AsyncProcessExecutor
 from utils import transhelper
 from common import consts
 
@@ -35,6 +37,7 @@ class BridgeServer(BaseAppServer):
         cfg = self.get_configuration()
         RedisPreparer.prepare(cfg, self)
         MinioPreparer.prepare(cfg, self)
+        SQLAlchemyPreparer.prepare(cfg, self)
         transport_listener = self.configure_transport()
         TransportPreparer.prepare_transports(cfg, transport_listener, self)
 
@@ -46,8 +49,11 @@ class BridgeServer(BaseAppServer):
         global_pool = self.get_config_value(consts.USE_GLOBAL_POOL, "false")
         global_pool = global_pool.lower() == "true"
         if self.is_production_mode():
-            execution_manager = MessageExecutionManager(cfg, ProcessExecutor) if global_pool \
-                else ProcessMessageExecutionManager(cfg)
+            if global_pool:
+                execution_manager = MessageExecutionManager(cfg, ProcessExecutor)
+            else:
+                execution_manager = ProcessMessageExecutionManager(cfg, AsyncProcessExecutor) if self.is_async_mode() \
+                    else ProcessMessageExecutionManager(cfg)
         else:
             execution_manager = MessageExecutionManager(cfg)
         execution_manager.simple_model = global_pool
