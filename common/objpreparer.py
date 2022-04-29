@@ -44,4 +44,5 @@ class BaseObjectPreparer(object):
             if not provider_instance.is_configured():
                 provider_instance.set_configuration(cfg)
                 provider_instance.service_enabled = True
+                provider_instance.configure()
                 server_holder.add_object(provider_instance)

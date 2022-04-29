@@ -26,6 +26,7 @@ class BaseAppServer(LifeCycleManager):
         self._transport_listener = None
         self._production_mode = None
         self._standalone = standalone
+        self._async_mode = None
 
     def do_configure(self):
         self._lazy_configure() if self._production_mode is None else None
@@ -63,9 +64,16 @@ class BaseAppServer(LifeCycleManager):
         self._lazy_configure() if self._production_mode is None else None
         return self._production_mode
 
+    def is_async_mode(self):
+        self._lazy_configure() if self._async_mode is None else None
+        return self._async_mode
+
     def _lazy_configure(self):
         config = self.get_configuration()
         mode = "false" if consts.PRODUCTION_MODE not in config else config[consts.PRODUCTION_MODE]
         mode = "false" if mode is None else mode
         self._production_mode = mode.lower() == "true"
+        mode = "false" if consts.USE_ASYNC not in config else config[consts.USE_ASYNC]
+        mode = "false" if mode is None else mode
+        self._async_mode = mode.lower() == "true"
 

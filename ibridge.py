@@ -200,6 +200,7 @@ def main(argv=None):
     if argv:
         assert isinstance(argv, list)
         sys.argv = argv
+    consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
     consts.prepare_path()
     config = dotenv_values("{0}/.env".format(consts.DEFAULT_SCRIPT_PATH))
     configure_logging(config)

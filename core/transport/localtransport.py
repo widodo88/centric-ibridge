@@ -64,16 +64,19 @@ class LocalhostTransport(LocalTransportHandler):
                     else:
                         try:
                             fp = event_socket.makefile('r', buffering=1024)
-                            message = fp.readline()
-                            fp.close()
-                            should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
-                            if not should_terminate:
-                                if message and (len(message) > 0):
-                                    self.handle_message(message)
-                                else:
-                                    time.sleep(0.2)
+                            try:
+                                message = fp.readline()
+                            finally:
+                                fp.close()
                         finally:
+                            self.selector.unregister(event_socket)
                             event_socket.close()
+                        should_terminate = isinstance(message, str) and (message.strip().lower() == 'shut')
+                        if not should_terminate:
+                            if message and (len(message) > 0):
+                                self.handle_message(message)
+                            else:
+                                time.sleep(0.2)
             except Exception as ex:
                 logging.error(ex)
             finally:

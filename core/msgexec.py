@@ -117,7 +117,6 @@ class BaseExecutor(Startable, ExecutorLoader, ExecutorCreator):
         instance.set_module_configuration(self.get_module_configuration())
         instance.set_message_object(args[0])
         instance.configure()
-        logging.debug("BaseExecutor.create_object: {0} output {1}".format(klass, instance))
         return instance
 
     def _create_obj_module(self, str_mod, message_obj, props):
@@ -159,18 +158,18 @@ class ModuleExecutor(BaseExecutor):
     def do_stop(self):
         self._pool.terminate()
 
-    def assign_task(self, module: BaseExecutor, message_obj: AbstractMessage, func: str = None):
+    def assign_task(self, module: CommandProcessor, message_obj: AbstractMessage, func: str = None):
         self._pool.apply_async(self.do_execute, (module, message_obj, func))
 
     @staticmethod
     def do_execute(module: CommandProcessor, message_obj: AbstractMessage, func: str):
-        logging.debug("Processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
+        logging.debug("Processing {0}".format(message_obj.get_module_id()))
         try:
             module.perform_execute(message_obj, func)
         except Exception as ex:
             logging.exception(ex)
         finally:
-            logging.debug("End processing {0} on thread {1}".format(message_obj.get_module_id(), get_ident()))
+            logging.debug("End processing {0}".format(message_obj.get_module_id()))
 
     def execute_module(self, message_obj: AbstractMessage):
         for module, str_func in self._collect_object_module(message_obj):
