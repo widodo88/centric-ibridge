@@ -23,7 +23,7 @@ from core.transfactory import TransportPreparer
 from core.msghandler import QueuePoolHandler, MessageNotifier
 from core.msgexec import MessageExecutionManager
 from core.msgpexec import ProcessMessageExecutionManager, ProcessExecutor
-from core.aio.msgpaioexec import AsyncProcessExecutor
+from core.aio.aiomsgpexec import AsyncProcessExecutor
 from utils import transhelper
 from common import consts
 

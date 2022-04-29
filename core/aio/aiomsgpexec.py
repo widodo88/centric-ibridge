@@ -19,11 +19,12 @@ try:
 except:
     import base64
 
+import uvloop
 import logging
 import os
 import asyncio
 from asyncio import StreamReader, StreamReaderProtocol
-from core.msgpexec import BaseProcessExecutor
+from core.msgpexec import BaseProcessExecutor, ShutdownMessage
 from core.aio.aiomsgexec import AsyncModuleExecutor
 from core.aio.aiomsgfactory import AsyncMessageFactory
 
@@ -122,8 +123,9 @@ class AsyncProcessExecutor(BaseProcessExecutor, AsyncExecutor):
         os.close(self.read_fd)
         
     def do_stop(self):
-        super(AsyncProcessExecutor, self).do_stop()
+        self.submit_task(ShutdownMessage())
         self.writer_transport.close()
+        super(AsyncProcessExecutor, self).do_stop()
 
     def submit_task(self, message_obj):
         self.writer_transport.write("{0}\n".format(message_obj.encode().decode("utf-8")).encode())
@@ -131,6 +133,7 @@ class AsyncProcessExecutor(BaseProcessExecutor, AsyncExecutor):
     def subprocess_entry(self):
         self.initialize_handler()
         os.close(self.write_fd)
+        uvloop.install()
         self.loop = asyncio.get_event_loop()
         try:
             self.loop.run_until_complete(self.read_message(self.read_fd))
