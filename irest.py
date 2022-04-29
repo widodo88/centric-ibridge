@@ -49,6 +49,7 @@ class RestApp(BaseRestServer):
                          static_folder=os.path.join(consts.DEFAULT_SCRIPT_PATH, "resources/static"))
         rest_app.wsgi_app = PrefixMiddleware(rest_app.wsgi_app,
                                              prefix=self.get_config_value(consts.RESTAPI_ROOT_PATH, '/'))
+        rest_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         rest_app.wsgi_app = ProxyFix(rest_app.wsgi_app)
         rest_app.add_url_rule('/', None, self.root_index)
         rest_app.after_request_funcs.setdefault(None, []).append(self.refresh_token)
@@ -93,6 +94,7 @@ def configure_logging(config):
 
 
 def create_app():
+    consts.DEFAULT_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
     consts.prepare_path()
     config = dotenv_values("{0}/.env".format(consts.DEFAULT_SCRIPT_PATH))
     configure_logging(config)

@@ -14,6 +14,7 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import ldap
+import logging
 from typing import Optional
 from common import consts
 from core.flask.baseauthsvc import BaseAuthService
@@ -82,7 +83,8 @@ class LDAPAuthService(BaseAuthService):
             result.update([('username', username),
                            ('fullname', resp['displayName'][0].decode()),
                            ('email', resp['mail'][0].decode())])
-        except:
+        except Exception as ex:
+            logging.debug(ex)
             login_result = False
         finally:
             conn.unbind_s() if conn else None
